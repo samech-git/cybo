@@ -1,6 +1,6 @@
 !!!  problem input file
 &INPUT 
-mesh_name = 'meshes/readme.msh'
+mesh_name = '../meshes/naca.msh'
 
 
 
