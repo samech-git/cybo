@@ -22,7 +22,8 @@ END MODULE
 
 MODULE inputs
 IMPLICIT NONE
-character(len=90) :: mesh_name
+character(len=90) :: mesh_name       ! Name of the mesh file
+character(len=90) :: out_file        ! Name of the .tec file to write
 END MODULE
 
 

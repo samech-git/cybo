@@ -16,23 +16,24 @@
 ! in ASCII tecplot format
 SUBROUTINE write_tec
 USE globals
+USE inputs
 IMPLICIT NONE
 integer :: funit,count,i
-character(len=90) :: outfile,jobname
-
+character(len=90) :: tecout, file_num
 funit = 5
-count = 0
-jobname = 'out'
-outfile = adjustr(trim(jobname)) // '_' // &
-     adjustr(trim('000')) // '.tec'
 
-open(funit,file=outfile,status='unknown')
+count = 2        ! Increment this counter to get a database of files
+write(file_num,'(I4.4)') count
+tecout = adjustr(trim(out_file)) // '_' // &
+     adjustr(trim(file_num)) // '.tec'
+
+open(funit,file=tecout,status='unknown')
 write(funit,*) 'TITLE = "CYBO output" '
 write(funit,*) 'VARIABLES="X","Y","u" '
 write(funit,*) 'ZONE F=FEPOINT,ET=TRIANGLE'
 write(funit,*) 'N=',numpts,',E=',numtri
 
-u = x**2 - y**2
+
 do i=1,numpts
    write(funit,*) x(i),y(i),u(i)  
 end do
@@ -63,7 +64,7 @@ read(funit,*) numpts, numtri!, numbnd
 call allocate_mesh
 
 do i=1,numpts
-   read(funit,*) x(i),y(i)
+   read(funit,*) x(i),y(i)!,bound(i)
 end do
 
 do i=1,numtri

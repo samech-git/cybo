@@ -14,8 +14,9 @@
 
 PROGRAM cybo
 USE inputs
+USE globals
 IMPLICIT NONE
-NAMELIST /INPUT/ mesh_name
+NAMELIST /INPUT/ mesh_name, out_file
 character(len=90) :: inputFile
 integer :: funit
 
@@ -31,6 +32,7 @@ open(unit=funit,file=TRIM(inputFile),form='FORMATTED',status='OLD')
 close(funit)
 
 call read_mesh
+u = x**2 - y**2
 call write_tec
 
 END PROGRAM
