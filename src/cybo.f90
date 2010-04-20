@@ -14,15 +14,15 @@
 
 PROGRAM cybo
 USE inputs
-USE globals
+USE mesh
 IMPLICIT NONE
-NAMELIST /INPUT/ mesh_name, out_file
-character(len=90) :: inputFile
-integer :: funit
+NAMELIST /INPUT/ mesh_name,out_file,tsmax
+CHARACTER(len=90) :: inputFile
+INTEGER :: funit
 
 ! Check to make sure an input file was given
-if (iargc() .eq. 0) stop 'Usage: ./cybo inputfile'
-call getarg(1,inputFile)
+IF (iargc() .EQ. 0) STOP 'Usage: ./cybo inputfile'
+CALL GETARG(1,inputFile)
 
 ! Read in namelist file and use to read in grid and setup
 ! arrays for the solver
@@ -32,18 +32,11 @@ open(unit=funit,file=TRIM(inputFile),form='FORMATTED',status='OLD')
 close(funit)
 
 call read_mesh
+
 u = x**2 - y**2
+call solver
+
 call write_tec
 
 END PROGRAM
 
-
-SUBROUTINE allocate_mesh
-USE globals
-
-allocate(x(numpts))
-allocate(y(numpts))
-allocate(u(numpts))
-allocate(tri(3,numtri))
-
-END SUBROUTINE

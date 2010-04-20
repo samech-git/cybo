@@ -16,7 +16,7 @@ f90 = ifort
 flags = 
 exec = cybo
 
-source = modules.o IO.o cybo.o
+source = modules.o IO.o solver.o cybo.o
 
 $(exec) : $(source)
 	$(f90) $(source) $(flags) -o $(exec)

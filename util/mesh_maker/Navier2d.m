@@ -254,7 +254,10 @@ t    = data.mesh.t;
 %time = data.init.time;
 %resx = data.init.resx;
 %resy = data.init.resy;
-bc = data.bc;
+e = data.mesh.e; % List of 2 points which connect each edge
+bc = data.bc;  % This is the bc flag for each edge bc value 
+
+e(:,3) = bc;      % Form 3 element array for EDGE (pt1,pt2,bc_type)
 
 % Clear others
 clear('data'); clear('varargin');
@@ -263,12 +266,13 @@ clear('data'); clear('varargin');
 uisave
 
 mesh_name = 'mesh.msh'
-grid_stats = [size(p,1),size(t,1) ];
+grid_stats = [size(p,1),size(t,1),size(e,1) ];
 comment = 'Mesh file for CYBO';
 dlmwrite(mesh_name, comment,'');
 dlmwrite(mesh_name,grid_stats,'delimiter',' ','-append');
 dlmwrite(mesh_name,p,'delimiter',' ','-append');
 dlmwrite(mesh_name,t,'delimiter',' ','-append');
+dlmwrite(mesh_name,e,'delimiter',' ','-append');
 
 return
 

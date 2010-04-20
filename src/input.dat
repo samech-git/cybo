@@ -1,6 +1,6 @@
 !!!  problem input file
 &INPUT 
-mesh_name = '../meshes/readme.msh'  ! Mesh file location/name
+mesh_name = '../meshes/mesh.msh'  ! Mesh file location/name
 out_file = 'heat'		    ! Base name for output file (out_file_####.tec)
 
 
