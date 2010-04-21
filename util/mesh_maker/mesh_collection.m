@@ -461,7 +461,7 @@ wing(:,2) = af.z(off+1:end-off);
 
       [p,t] = mesh2d(node,edge,hdata,options);
 
-      save naca p t
+      %save naca p t
         
 end
 

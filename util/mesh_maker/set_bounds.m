@@ -29,7 +29,7 @@ set(figure(1),'UserData',data);
 
 % Main window
 set(figure(1), ...
-             'Name'       ,'Navier2d'  , ...
+             'Name'       ,'CYBO PreProcessor'  , ...
              'Units'      ,'Normalized', ...
              'NumberTitle','Off'       , ...
              'UserData',data); axis off
@@ -146,7 +146,8 @@ e = data.mesh.e;                 % List of 2 points which connect each edge
 e2t = data.mesh.e2t;        % List of two triangles separated by the edge
 bc = data.bc;  % This is the bc flag for each edge bc value 
 
-e(:,3) = bc;      % Form 3 element array for EDGE (pt1,pt2,bc_type)
+e(:,3:4) = e2t;
+e(:,5) = bc;      % Form 3 element array for EDGE (pt1,pt2,t1,t2,bc_type)
 
 % Clear others
 clear('data'); clear('varargin');

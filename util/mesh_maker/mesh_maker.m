@@ -5,7 +5,7 @@ function mesh_maker
 
 % Select the mesh you want to make here
 % Use the mesh collection or write your own 
-% mesh.  Somehow, get:
+% and use mesh2d (included),  Somehow, get:
 %                   -p(npts,2)  = x,y location of nodes
 %                   -t(ntri,3) = CCW ordering of nodes of triangles
 

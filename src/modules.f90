@@ -14,9 +14,11 @@
 
 MODULE mesh
 IMPLICIT NONE
-double precision, dimension(:), allocatable :: x,y,u
-integer, dimension(:,:), allocatable :: tri,edg
+DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: x,y,u
+INTEGER, DIMENSION(:,:), ALLOCATABLE :: tri,edg
+INTEGER, DIMENSION(:), ALLOCATABLE :: bound,inter
 integer :: numpts,numtri,numedg
+INTEGER, PARAMETER :: unassigned=-1
 END MODULE
 
 
@@ -24,7 +26,7 @@ MODULE inputs
 IMPLICIT NONE
 CHARACTER(LEN=90) :: mesh_name       ! Name of the mesh file
 CHARACTER(LEN=90) :: out_file        ! Name of the .tec file to write
-INTEGER :: tsmax = 1000              ! Max number of time steps to take
+INTEGER :: tsmax = 100               ! Max number of time steps to take
 END MODULE
 
 MODULE euler
@@ -44,7 +46,7 @@ allocate(x(numpts))
 allocate(y(numpts))
 allocate(u(numpts))
 allocate(tri(3,numtri))
-allocate(edg(3,numedg))
+allocate(edg(5,numedg))
 END SUBROUTINE
 
 SUBROUTINE allocate_euler

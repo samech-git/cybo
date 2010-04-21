@@ -93,8 +93,23 @@ DOUBLE PRECISION, DIMENSION(4,numtri), INTENT(OUT) :: flux
 !! Routine to get the flux (residual) for each cell volume
 flux = 0.0d0
 
-! Some loop over the edges to get the flux balance of each
+! Some loop over the interior edges to get the flux balance of each
 ! triangle
+!DO i=1,size(inter)
+   !edg(3,inter(i))
+
+!END DO
+
+
+! Some loop over the boundary edges
+!DO i=1,size(bound)
+
+! bc_type = edge(5,bound(i))
+! CALL bound_edge( 
+
+!END DO
+
+
 
 END SUBROUTINE
 

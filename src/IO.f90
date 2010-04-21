@@ -51,33 +51,66 @@ END SUBROUTINE
 
 !! Read in a mesh file from Matlab routines
 SUBROUTINE read_mesh
-USE inputs, only: mesh_name
+USE inputs, ONLY: mesh_name
 USE mesh
 IMPLICIT NONE
-integer :: funit,i
-character(len=30) :: comments
+INTEGER :: funit,i,count
+CHARACTER(LEN=30) :: comments
 
 funit=2
-open(unit=funit,file=mesh_name,status='old')
-read(funit,*) comments
-read(funit,*) numpts, numtri, numedg
+OPEN(UNIT=funit,FILE=mesh_name,STATUS='old')
+READ(funit,*) comments
+READ(funit,*) numpts, numtri, numedg
 
-call allocate_mesh
+CALL allocate_mesh
 
 ! Read in the point locations
-do i=1,numpts
-   read(funit,*) x(i),y(i)
-end do
+DO i=1,numpts
+   READ(funit,*) x(i),y(i)
+END DO
 ! Read in the triangle node list (3 per volume)
-do i=1,numtri
-   read(funit,*) tri(1,i),tri(2,i),tri(3,i)
-end do
-! Read in the edge nodes (2 per edge + 1 for bc type)
-do i=1,numedg
-   read(funit,*) edg(1,i),edg(2,i),edg(3,i)
-end do
+DO i=1,numtri
+   READ(funit,*) tri(1,i),tri(2,i),tri(3,i)
+END DO
+! Read in the edge nodes (2 per edge + 2 per tri + 1 for bc type)
+DO i=1,numedg
+   READ(funit,*) edg(1,i),edg(2,i),edg(3,i),edg(4,i),edg(5,i)
+END DO
+CLOSE(funit)
 
+! Count the Boundary edges
+count = 0
+DO i=1,numedg
+   IF (edg(5,i) .NE. unassigned) THEN
+      count = count + 1
+   END IF
+END DO
 
-close(funit)
+ALLOCATE(bound(count))
+ALLOCATE(inter(numedg-count))
+
+! Keep track of Boundary edges
+count = 0
+DO i=1,numedg
+   IF (edg(5,i) .NE. unassigned) THEN
+      bound(count+1) = i
+      count = count + 1
+   END IF
+END DO
+
+! Keep track of Interior edges
+count = 0
+DO i=1,numedg
+   IF (edg(5,i) .NE. unassigned) THEN
+   ELSE
+      inter(count+1) = i
+      count = count + 1
+   END IF
+END DO
+
+WRITE(*,*),'Read in:',mesh_name,':'
+WRITE(*,*),'Nodes:',numpts
+WRITE(*,*),'Triangles:',numtri
+WRITE(*,*),'Edges:',numedg,'(',size(bound),'boundary +',size(inter),'interior)'
 
 END SUBROUTINE

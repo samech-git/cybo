@@ -1,7 +1,19 @@
-!!!  problem input file
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!        /\        CYBO-Unstuctured Euler Solver  !!!
+!!!       /  \                                      !!!
+!!!      /    \      Chris M. Yu & Britton J. Olson !!!
+!!!     /______\     Department on Aero/Astro       !!!
+!!!    /\      /\    Stanford University            !!!
+!!!   /  \    /  \   Spring 2010                    !!!
+!!!  /    \  /    \                                 !!! 
+!!! /______\/______\                                !!!
+!!!                                                 !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 &INPUT 
-mesh_name = '../meshes/mesh.msh'  ! Mesh file location/name
-out_file = 'heat'		    ! Base name for output file (out_file_####.tec)
-
+mesh_name = '../meshes/naca_test.msh'  ! Mesh file location/name
+out_file = 'heat'		       ! Base name for output file (out_file_####.tec)
+tsmax = 10			       ! Maximum time steps to take
 
 /
