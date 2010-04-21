@@ -1,4 +1,4 @@
-function mesh_collection(num)
+function [p,t] = mesh_collection(num)
 
 %  MESH_COLLECTION: Collection of meshing examples from MESH2D users. 
 %
