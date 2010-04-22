@@ -14,7 +14,7 @@
 
 MODULE mesh
 IMPLICIT NONE
-DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: x,y,u
+DOUBLE PRECISION, DIMENSION(:), ALLOCATABLE :: x,y,u,area
 INTEGER, DIMENSION(:,:), ALLOCATABLE :: tri,edg
 INTEGER, DIMENSION(:), ALLOCATABLE :: bound,inter
 integer :: numpts,numtri,numedg
@@ -27,11 +27,19 @@ IMPLICIT NONE
 CHARACTER(LEN=90) :: mesh_name       ! Name of the mesh file
 CHARACTER(LEN=90) :: out_file        ! Name of the .tec file to write
 INTEGER :: tsmax = 100               ! Max number of time steps to take
+DOUBLE PRECISION :: gamma = 1.4d0    ! Ratio of specific heat for gas
 END MODULE
 
 MODULE euler
 IMPLICIT NONE
-DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE :: w   ! Conserved variables
+DOUBLE PRECISION, DIMENSION(:,:), ALLOCATABLE, TARGET :: w   ! Conserved variables
+DOUBLE PRECISION, DIMENSION(:), POINTER :: rho
+DOUBLE PRECISION, DIMENSION(:), POINTER :: rhou
+DOUBLE PRECISION, DIMENSION(:), POINTER :: rhov
+DOUBLE PRECISION, DIMENSION(:), POINTER :: rhoE
+DOUBLE PRECISION, DIMENSION(:), POINTER :: p
+DOUBLE PRECISION :: gm1
+DOUBLE PRECISION, DIMENSION(4) :: inlet
 END MODULE
 
 MODULE rk4
@@ -46,14 +54,24 @@ allocate(x(numpts))
 allocate(y(numpts))
 allocate(u(numpts))
 allocate(tri(3,numtri))
+ALLOCATE(area(numtri))
 allocate(edg(5,numedg))
 END SUBROUTINE
 
 SUBROUTINE allocate_euler
 USE euler
 USE mesh, ONLY: numtri 
+USE inputs, ONLY: gamma
 IMPLICIT NONE
-ALLOCATE(w(5,numtri))   ! rho,rhoU,rhoV,rhoH,P for each triangle
+ALLOCATE(w(5,numtri))
+w(:,:) = 0.0d0
+rho  => w(1,:)
+rhou => w(2,:)
+rhov => w(3,:)
+rhoE => w(4,:)
+p    => w(5,:)
+
+gm1 = gamma - 1.0d0
 END SUBROUTINE
 
 SUBROUTINE allocate_rk4

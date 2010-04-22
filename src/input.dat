@@ -12,8 +12,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 &INPUT 
-mesh_name = '../meshes/naca_test.msh'  ! Mesh file location/name
-out_file = 'heat'		       ! Base name for output file (out_file_####.tec)
-tsmax = 10			       ! Maximum time steps to take
+mesh_name = '../meshes/box.msh'  ! Mesh file location/name
+out_file = 'naca'		       ! Base name for output file (out_file_####.tec)
+tsmax = 2  			       ! Maximum time steps to take
 
 /

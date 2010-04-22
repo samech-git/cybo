@@ -15,11 +15,15 @@
 ! Write out the unstructured mesh and variables
 ! in ASCII tecplot format
 SUBROUTINE write_tec
+USE euler
 USE mesh
 USE inputs
 IMPLICIT NONE
-integer :: funit,count,i
-character(len=90) :: tecout, file_num
+DOUBLE PRECISION, DIMENSION(numpts) :: rhop,rhoup,rhovp
+INTEGER, DIMENSION(numpts) :: sump
+INTEGER :: funit,count,i
+INTEGER :: n1,n2,n3
+CHARACTER(LEN=90) :: tecout, file_num
 funit = 5
 
 count = 2        ! Increment this counter to get a database of files
@@ -27,16 +31,42 @@ write(file_num,'(I4.4)') count
 tecout = adjustr(trim(out_file)) // '_' // &
      adjustr(trim(file_num)) // '.tec'
 
+rhop = 0.0d0
+sump = 0
+DO i=1,numtri
+   n1 = tri(1,i)
+   n2 = tri(2,i)
+   n3 = tri(3,i)
+   rhop(n1) = rhop(n1) + rho(i)
+   rhop(n2) = rhop(n2) + rho(i)
+   rhop(n3) = rhop(n3) + rho(i)
+   
+   rhoup(n1) = rhoup(n1) + rhou(i)
+   rhoup(n2) = rhoup(n2) + rhou(i)
+   rhoup(n3) = rhoup(n3) + rhou(i)
+   
+   rhovp(n1) = rhovp(n1) + rhov(i)
+   rhovp(n2) = rhovp(n2) + rhov(i)
+   rhovp(n3) = rhovp(n3) + rhov(i)
+
+   sump(n1) = sump(n1) + 1
+   sump(n2) = sump(n2) + 1
+   sump(n3) = sump(n3) + 1
+END DO
+rhop = rhop / dble(sump)
+rhoup = rhoup / dble(sump)
+rhovp = rhovp / dble(sump)
+
 open(funit,file=tecout,status='unknown')
 write(funit,*) 'TITLE = "CYBO output" '
-write(funit,*) 'VARIABLES="X","Y","u" '
+write(funit,*) 'VARIABLES="X","Y","rho","u","v" '
 write(funit,*) 'ZONE F=FEPOINT,ET=TRIANGLE'
 write(funit,*) 'N=',numpts,',E=',numtri
 
 
 do i=1,numpts
    !write(funit,*) real(x(i)),real(y(i)),real(u(i)) ! Single precision write
-   write(funit,*) x(i),y(i),u(i)                   ! Double precision write 
+   write(funit,*) x(i),y(i),rhop(i),rhoup(i),rhovp(i)      ! Double precision write 
 end do
 do i=1,numtri
    write(funit,*) tri(1,i),tri(2,i),tri(3,i)
@@ -54,7 +84,7 @@ SUBROUTINE read_mesh
 USE inputs, ONLY: mesh_name
 USE mesh
 IMPLICIT NONE
-INTEGER :: funit,i,count
+INTEGER :: funit,i,count,n1,n2,n3
 CHARACTER(LEN=30) :: comments
 
 funit=2
@@ -112,5 +142,14 @@ WRITE(*,*),'Read in:',mesh_name,':'
 WRITE(*,*),'Nodes:',numpts
 WRITE(*,*),'Triangles:',numtri
 WRITE(*,*),'Edges:',numedg,'(',size(bound),'boundary +',size(inter),'interior)'
+
+DO i=1,numtri
+   n1 = tri(1,i)
+   n2 = tri(2,i)
+   n3 = tri(3,i)
+
+   area(i) = .5d0*( x(n1)*(y(n2)-y(n3)) & 
+        & +x(n2)*(y(n3)-y(n1))+x(n3)*(y(n1)-y(n2)))
+END DO 
 
 END SUBROUTINE
