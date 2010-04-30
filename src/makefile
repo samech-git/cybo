@@ -13,13 +13,14 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 f90 = ifort
-flags = 
+flags = -O3
 exec = cybo
 
 source = modules.o IO.o solver.o cybo.o
 
 $(exec) : $(source)
 	$(f90) $(source) $(flags) -o $(exec)
+	mv $(exec) ../bin/.
 
 %.o: %.f90
 	$(f90) $(flags) -c $<
@@ -27,4 +28,4 @@ $(exec) : $(source)
 clean:
 	rm -f *.o *.mod
 clobber: 
-	rm -f *.o *.mod $(exec)
+	rm -f *.o *.mod ../bin/$(exec)
