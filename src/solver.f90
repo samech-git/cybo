@@ -22,11 +22,18 @@ DOUBLE PRECISION :: dt
 
 CALL allocate_rk4
 
+CALL write_tec
+
 DO k=1,tsmax
    CALL get_dt(dt)
    CALL rk4step(dt)
    WRITE(*,*) 'Step number:',k
+   IF (MOD(k,10)==0) THEN
+      WRITE(*,*) 'Writing tec file',count
+      CALL write_tec
+   END IF
 END DO
+
 
 
 END SUBROUTINE 
@@ -40,7 +47,7 @@ IMPLICIT NONE
 DOUBLE PRECISION :: dt
 
 ! Some routine that set the dt_max for the grid
-dt = .001d0 !!!!!
+dt = .00001d0 !!!!!
 !!!!!!!!!!!
 !!!!!!!!!!!
 
@@ -86,7 +93,7 @@ END SUBROUTINE
 
 SUBROUTINE get_pressure
 USE euler
-
+IMPLICIT NONE
 p = gm1*(rhoE - (rhou**2 + rhov**2)/(2.0d0*rho))
  
 END SUBROUTINE
@@ -138,9 +145,8 @@ DO i=1,size(bound)
    CALL bound_edge(e,bc,fs) 
    
    ! Add edge fluxes up for each triangle
-   IF (t1 .ne. 0) flux(:,t1) = flux(:,t1) + fs/area(t1)
-   IF (t2 .ne. 0) flux(:,t2) = flux(:,t2) + fs/area(t2)
-
+    flux(:,t1) = flux(:,t1) + fs/area(t1)
+       
 END DO
 
 

@@ -56,7 +56,7 @@ switch(num)
 
       node  = [0,0; 1,0; 1,1; 0,1];
 
-      hdata.hmax = .1;%0.01;
+      hdata.hmax = 0.01;
 
       [p,t] = mesh2d(node,[],hdata);
 

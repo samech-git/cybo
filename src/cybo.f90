@@ -35,9 +35,9 @@ CALL read_mesh
 
 u = x**2 - y**2
 CALL init_field
+
 CALL solver
 
-CALL write_tec
 
 END PROGRAM
 

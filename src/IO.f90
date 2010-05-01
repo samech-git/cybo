@@ -21,12 +21,12 @@ USE inputs
 IMPLICIT NONE
 DOUBLE PRECISION, DIMENSION(numpts) :: rhop,rhoup,rhovp
 INTEGER, DIMENSION(numpts) :: sump
-INTEGER :: funit,count,i
+INTEGER :: funit,i
 INTEGER :: n1,n2,n3
 CHARACTER(LEN=90) :: tecout, file_num
 funit = 5
 
-count = 2        ! Increment this counter to get a database of files
+count = count + 1        ! Increment this counter to get a database of files
 write(file_num,'(I4.4)') count
 tecout = adjustr(trim(out_file)) // '_' // &
      adjustr(trim(file_num)) // '.tec'
