@@ -12,10 +12,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 &INPUT 
-!!mesh_name = '../meshes/box.msh'  ! Mesh file location/name
-mesh_name = '../meshes/box_big.msh'  ! Mesh file location/name	
-mesh_name = '../meshes/naca.msh'  ! Mesh file location/name
-out_file = 'naca'		       ! Base name for output file (out_file_####.tec)
-tsmax = 50  			       ! Maximum time steps to take
+mesh_name = '../meshes/box.msh'  ! Mesh file location/name
+!!mesh_name = '../meshes/box_big.msh'  ! Mesh file location/name	
+!!mesh_name = '../meshes/naca.msh'  ! Mesh file location/name
+mesh_name = '../meshes/test_2.msh'
+out_file = 'test'		       ! Base name for output file (out_file_####.tec)
+tsmax = 5  			       ! Maximum time steps to take
 
 /

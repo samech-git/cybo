@@ -67,23 +67,24 @@ tmp1 = 0.0d0
 tmp2 = 0.0d0
 phi = 0.0d0
 
-DO i=1,5
-  	
-   CALL get_flux(flux)
-    
-   tmp1 =  Ark(i)*phi
-   PHI = -dt*flux + tmp1
-   
-   tmp2 =  Brk(i)*phi
-   w(1:4,:) =  w(1:4,:) + tmp2 
-   
-   CALL get_pressure
-   
-END DO
+! 5 Stage RK4 step
+!!$DO i=1,5
+!!$  	
+!!$   CALL get_flux(flux)
+!!$    
+!!$   tmp1 =  Ark(i)*phi
+!!$   PHI = -dt*flux + tmp1
+!!$   
+!!$   tmp2 =  Brk(i)*phi
+!!$   w(1:4,:) =  w(1:4,:) + tmp2 
+!!$   
+!!$   CALL get_pressure
+!!$   
+!!$END DO
 
-!CALL get_flux(flux)
-!w(1:4,:) = w(1:4,:) - dt*flux
-
+! Forward Euler Time stepping
+CALL get_flux(flux)
+w(1:4,:) = w(1:4,:) - dt*flux
 CALL get_pressure
 
 
@@ -94,7 +95,8 @@ END SUBROUTINE
 SUBROUTINE get_pressure
 USE euler
 IMPLICIT NONE
-p = gm1*(rhoE - (rhou**2 + rhov**2)/(2.0d0*rho))
+
+p = gm1*(rhoE/rho - (rhou**2 + rhov**2)/(2.0d0*rho) )
  
 END SUBROUTINE
 
@@ -124,15 +126,19 @@ DO i=1,size(inter)
    qs1 = (rhou(t1)*dy - rhov(t1)*dx)/rho(t1)  ! Reused in flux
    qs2 = (rhou(t2)*dy - rhov(t2)*dx)/rho(t2)  ! Reused in flux
 
-   
+      
    fs(1) = .5d0*(qs1*rho(t1)  + qs2*rho(t2))
    fs(2) = .5d0*(qs1*rhou(t1) + qs2*rhou(t2)) + .5d0*(p(t1) + p(t2))*dy
    fs(3) = .5d0*(qs1*rhov(t1) + qs2*rhov(t2)) - .5d0*(p(t1) + p(t2))*dx
    fs(4) = .5d0*(qs1*(rhoE(t1)+p(t1)) + qs2*(rhoE(t2)+p(t2)))
 
    ! Add edge fluxes up for each triangle
-   flux(:,t1) = flux(:,t1) + fs/area(t1)
+   flux(:,t1) = flux(:,t1) - fs/area(t1)
    flux(:,t2) = flux(:,t2) + fs/area(t2)
+
+   
+   PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
+   PRINT*,t2,real(-fs(1))
 END DO
 
 ! Some loop over the boundary edges
@@ -145,10 +151,14 @@ DO i=1,size(bound)
    CALL bound_edge(e,bc,fs) 
    
    ! Add edge fluxes up for each triangle
-    flux(:,t1) = flux(:,t1) + fs/area(t1)
-       
+    flux(:,t1) = flux(:,t1) - fs/area(t1)
+
+    !print*,real(fs(4))
+    PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
+
 END DO
 
+print*, real(flux(1,1)), real(flux(1,2))
 
 END SUBROUTINE
 
@@ -171,6 +181,8 @@ IF (bc == 1) THEN      ! Free stream
 
    dx = x(n2) - x(n1)   ! Get dx for edge
    dy = y(n2) - y(n1)   ! Get dy for edge
+   
+   !PRINT*,real(dx),real(dy)
    
    rhoT = inlet(1)
    rhouT = inlet(2)

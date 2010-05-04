@@ -51,7 +51,7 @@ CALL allocate_euler
 
 rho_in = 1.0d0
 P_in = 1.0d0
-u_in = .001d0
+u_in = 1.0d0
 v_in = 0.0d0
 
 inlet(1) = rho_in
@@ -63,11 +63,10 @@ rho = rho_in
 rhou = rho_in*u_in
 rhov = rho_in*v_in
 p = P_in
-rhoE = P_in / gm1 + rho_in*u_in**2*v_in**2 / 2.0d0
+rhoE = rho_in * (P_in / gm1  + rho_in*(u_in**2.0 + v_in**2.0) / 2.0d0 )
 
 
 CALL get_pressure
-
 
 
 END SUBROUTINE
