@@ -1,4 +1,4 @@
-function set_bounds(p,t)
+function set_bounds_v2(p,t)
 
 clc;
 close all;
@@ -142,12 +142,41 @@ t    = data.mesh.t;
 %time = data.init.time;
 %resx = data.init.resx;
 %resy = data.init.resy;
-e = data.mesh.e;                 % List of 2 points which connect each edge
+epts = data.mesh.e;                 % List of 2 points which connect each edge
 e2t = data.mesh.e2t;        % List of two triangles separated by the edge
 bc = data.bc;  % This is the bc flag for each edge bc value 
 
-e(:,3:4) = e2t;
-e(:,5) = bc;      % Form 3 element array for EDGE (pt1,pt2,t1,t2,bc_type)
+% Write edge data for diamond structure - C.Yu 5/5/10
+n1 = epts(1);
+n2 = epts(2);
+t1 = e2t(1);
+t2 = e2t(2);
+
+if (t1 == 0) 
+    nt1 = 0;
+else 
+    for ind=1:3
+        if (t1(ind) ~= n1 & t1(ind) ~= n2) nt1 = t1(ind); it1 = ind; end
+    end
+end
+    
+if (t2 == 0) 
+    nt2 = 0;
+else
+    for ind=1:3
+        if (t2(ind) ~= n1 & t2(ind) ~= n2) nt2 = t2(ind); it2 = ind; end
+    end
+end
+
+e(:,1) = nt1; 
+if (t1 ~= 0) e(:,2) = t1(it1+1);
+else         e(:,2) = t2(it2-1);
+e(:,3) = nt2;
+if (t2 ~= 0) e(:,4) = t2(it2+1);
+else         e(:,4) = t1(it1-1);   
+
+e(:,5) = bc;    
+
 
 % Clear others
 clear('data'); clear('varargin');

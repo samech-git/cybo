@@ -462,6 +462,22 @@ wing(:,2) = af.z(off+1:end-off);
       [p,t] = mesh2d(node,edge,hdata,options);
 
       %save naca p t
+      
+      
+      
+      
+      
+      case 14
+
+      node  = [0,0; 1,0; 1,1; 0,1];
+
+      hdata.hmax = 0.5;
+
+      
+      
+      [p,t] = mesh2d(node,[],hdata);
+      
+      
         
 end
 

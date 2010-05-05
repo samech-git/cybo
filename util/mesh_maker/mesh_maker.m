@@ -9,7 +9,7 @@ function mesh_maker
 %                   -p(npts,2)  = x,y location of nodes
 %                   -t(ntri,3) = CCW ordering of nodes of triangles
 
-[p,t] = mesh_collection(13);
+[p,t] = mesh_collection(14);
 
 % Run the data structure on the mesh and 
 % set the boundary edges
