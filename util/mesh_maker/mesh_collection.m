@@ -471,7 +471,7 @@ wing(:,2) = af.z(off+1:end-off);
 
       node  = [0,0; 1,0; 1,1; 0,1];
 
-      hdata.hmax = 0.5;
+      hdata.hmax = 0.25;
 
       
       

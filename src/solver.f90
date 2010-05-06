@@ -85,6 +85,7 @@ phi = 0.0d0
 ! Forward Euler Time stepping
 CALL get_flux(flux)
 w(1:4,:) = w(1:4,:) - dt*flux
+CALL set_bc_points()
 CALL get_pressure
 
 
@@ -148,8 +149,9 @@ DO i=1,size(inter)
    flux(:,t1) = flux(:,t1) - fs !!/area(t1)  ** Need areas here ??
    flux(:,t2) = flux(:,t2) + fs !!/area(t2)
 
-   PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
-   PRINT*,t2,real(-fs(1))
+   !PRINT*,t1,n1,t2,n2
+   !PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
+   !PRINT*,t2,real(-fs(1))
 END DO
 
 ! Some loop over the boundary edges
@@ -167,11 +169,11 @@ DO i=1,size(bound)
    IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) - fs !/area(t1)
     
    !print*,real(fs(4))
-   PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
+   !PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
 
 END DO
 
-print*, real(flux(1,1)), real(flux(1,2))
+!print*, real(flux(1,1)), real(flux(1,2))
 
 END SUBROUTINE
 
@@ -219,6 +221,39 @@ ELSEIF (bc == 3) THEN  ! Outflow
 
 
 END IF
+
+
+END SUBROUTINE
+
+
+SUBROUTINE set_bc_points()
+USE euler
+USE mesh
+
+IMPLICIT NONE
+DOUBLE PRECISION :: pT
+INTEGER :: i ,n1,n2,e
+
+DO i=1,size(bound)
+
+   e = bound(i)
+   n1 = edg(2,e)
+   n2 = edg(4,e)
+
+   rho(n1) = inlet(1)
+   rhou(n1) = inlet(2)
+   rhov(n1) = inlet(3)
+   pT = inlet(4)
+   rhoE(n1) = pT/gm1 + (rhou(n1)**2+rhov(n1)**2)/(2.0d0*rho(n1))
+   
+   rho(n2) = inlet(1)
+   rhou(n2) = inlet(2)
+   rhov(n2) = inlet(3)
+   pT = inlet(4)
+   rhoE(n2) = pT/gm1 + (rhou(n2)**2+rhov(n2)**2)/(2.0d0*rho(n2))
+   
+END DO
+
 
 
 END SUBROUTINE
