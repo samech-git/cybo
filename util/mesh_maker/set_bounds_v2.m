@@ -142,42 +142,62 @@ t    = data.mesh.t;
 %time = data.init.time;
 %resx = data.init.resx;
 %resy = data.init.resy; 
-e = data.mesh.e;
-epts = e(:,1:2);            % List of 2 points which connect each edge
+e = data.mesh.e;       % List of 2 points which connect each edge
 e2t = data.mesh.e2t;        % List of two triangles separated by the edge
 bc = data.bc;  % This is the bc flag for each edge bc value 
 
 % Write edge data for diamond structure - C.Yu 5/5/10
-n1 = epts(1);
-n2 = epts(2);
-t1 = e2t(1);
-t2 = e2t(2);
+for iedge=1:size(e,1)
+    n1 = e(iedge,1);
+    n2 = e(iedge,2);
+    t1 = e2t(iedge,1);
+    t2 = e2t(iedge,2);
+    if (t1 ~=0) tp1(1:3) = t(t1,:); end
+    if (t2 ~=0) tp2(1:3) = t(t2,:); end
 
-if (t1 == 0) 
-    nt1 = 0;
-else 
-    for ind=1:3
-        if (t1(ind) ~= n1 & t1(ind) ~= n2) nt1 = t1(ind); it1 = ind; end
+    if (t1 == 0) 
+        nt1 = 0;
+    else 
+        for ind=1:3
+            if (tp1(ind) ~= n1 & tp1(ind) ~= n2) nt1 = tp1(ind); it1 = ind; end
+        end
     end
+    
+    if (t2 == 0) 
+        nt2 = 0;
+    else
+        for ind=1:3
+            if (tp2(ind) ~= n1 & tp2(ind) ~= n2) nt2 = tp2(ind); it2 = ind; end
+        end
+    end
+
+    % Shift indices to wrap around triangle if necessary
+    if (t1 ~= 0)
+        if (it1 ~= 3) it1p = it1+1;
+        else          it1p = 1; end
+        if (it1 ~= 1) it1m = it1-1;
+        else          it1m = 3; end
+    end
+   
+    if (t2 ~=0) 
+        if (it2 ~= 3) it2p = it2+1;
+        else          it2p = 1; end
+        if (it2 ~= 1) it2m = it2-1;
+        else          it2m = 3; end
+    end
+           
+    % Assign node points to e vector in c.clockwise order
+    e(iedge,1) = nt1; 
+    if (t1 ~= 0) e(iedge,2) = tp1(it1p);
+    else         e(iedge,2) = tp2(it2m); end
+    e(iedge,3) = nt2;
+    if (t2 ~= 0) e(iedge,4) = tp2(it2p);
+    else         e(iedge,4) = tp1(it1m); end
+
+    % Assign BC flag
+    e(iedge,5) = bc(iedge);    
 end
     
-if (t2 == 0) 
-    nt2 = 0;
-else
-    for ind=1:3
-        if (t2(ind) ~= n1 & t2(ind) ~= n2) nt2 = t2(ind); it2 = ind; end
-    end
-end
-
-e(:,1) = nt1; 
-if (t1 ~= 0) e(:,2) = t1(it1+1);
-else         e(:,2) = t2(it2-1);
-e(:,3) = nt2;
-if (t2 ~= 0) e(:,4) = t2(it2+1);
-else         e(:,4) = t1(it1-1);   
-
-e(:,5) = bc;    
-
 
 % Clear others
 clear('data'); clear('varargin');

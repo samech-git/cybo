@@ -13,7 +13,7 @@ function mesh_maker
 
 % Run the data structure on the mesh and 
 % set the boundary edges
-set_bounds(p,t);
+set_bounds_v2(p,t);
 
 
 end
