@@ -47,7 +47,7 @@ IMPLICIT NONE
 DOUBLE PRECISION :: dt
 
 ! Some routine that set the dt_max for the grid
-dt = .00001d0 !!!!!
+dt = .001d0 !!!!!
 !!!!!!!!!!!
 !!!!!!!!!!!
 
@@ -126,8 +126,9 @@ flux = 0.0d0
 !!         \/
 !!         T2
 
-! Some loop over the interior edges to get the flux balance of each
-! triangle
+! Loop over the interior edges to get the flux balance of
+! corresponding nodes
+
 DO i=1,size(inter)
    t1 = edg(1,inter(i)) ! Node 1 of tri 1
    n1 = edg(2,inter(i)) ! Node 2 of tri 1/ node 1 of edge
@@ -146,12 +147,9 @@ DO i=1,size(inter)
    fs(4) = .5d0*(qs1*(rhoE(n1)+p(n1)) + qs2*(rhoE(n2)+p(n2)))
 
    ! Add edge fluxes up for each triangle
-   flux(:,t1) = flux(:,t1) - fs !!/area(t1)  ** Need areas here ??
-   flux(:,t2) = flux(:,t2) + fs !!/area(t2)
+   flux(:,t1) = flux(:,t1) - fs /area(1)  !** Need areas here ??
+   flux(:,t2) = flux(:,t2) + fs /area(1)
 
-   !PRINT*,t1,n1,t2,n2
-   !PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
-   !PRINT*,t2,real(-fs(1))
 END DO
 
 ! Some loop over the boundary edges
@@ -165,17 +163,13 @@ DO i=1,size(bound)
    CALL bound_edge(e,bc,fs) 
    
    ! Add edge fluxes up for each triangle
-   IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs !/area(t1)
-   IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) - fs !/area(t1)
+   IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs /area(1)
+   IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) - fs /area(1)
     
-   !print*,real(fs(4))
-   !PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
-
 END DO
 
-!print*, real(flux(1,1)), real(flux(1,2))
-
 END SUBROUTINE
+
 
 SUBROUTINE bound_edge(e,bc,fs)
 USE inputs
@@ -218,7 +212,7 @@ ELSEIF (bc == 2) THEN  ! Slip wall
 
 ELSEIF (bc == 3) THEN  ! Outflow
 
-
+   fs = 0.0d0
 
 END IF
 
