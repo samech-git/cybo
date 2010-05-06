@@ -56,11 +56,11 @@ END SUBROUTINE
 
 SUBROUTINE rk4step(dt)
 USE rk4
-USE mesh, ONLY: numtri
+USE mesh, ONLY: numpts
 USE euler
 IMPLICIT NONE
 DOUBLE PRECISION, INTENT(IN) :: dt
-DOUBLE PRECISION, DIMENSION(4,numtri) :: flux,phi,tmp1,tmp2
+DOUBLE PRECISION, DIMENSION(4,numpts) :: flux,phi,tmp1,tmp2
 INTEGER :: i
 !	Initialize some intermediate arrays
 tmp1 = 0.0d0
@@ -112,31 +112,42 @@ DOUBLE PRECISION :: dx,dy,qs1,qs2
 !! Routine to get the flux (residual) for each cell volume
 flux = 0.0d0
 
+!!         T1        Diagram of how the edge flux is used
+!!         /\        to update the total flux of T1 and T2.
+!!        /  \
+!! Tri 1 /    \        
+!!      /      \ 
+!!   N1/__Edge__\N2
+!!     \        /
+!!      \      /  
+!! Tri 2 \    /  
+!!        \  /   
+!!         \/
+!!         T2
+
 ! Some loop over the interior edges to get the flux balance of each
 ! triangle
 DO i=1,size(inter)
-   n1 = edg(1,inter(i)) ! Node 1 of the edge
-   n2 = edg(2,inter(i)) ! Node 2 of the edge
-   t1 = edg(3,inter(i)) ! Tri 1 of the edge
-   t2 = edg(4,inter(i)) ! Tri 2 of the edge
-
+   t1 = edg(1,inter(i)) ! Node 1 of tri 1
+   n1 = edg(2,inter(i)) ! Node 2 of tri 1/ node 1 of edge
+   t2 = edg(3,inter(i)) ! Node 1 of tri 2
+   n2 = edg(4,inter(i)) ! Node 2 of tri 2/ node 2 of edge
+   
    dx = x(n2) - x(n1)   ! Get dx for edge
    dy = y(n2) - y(n1)   ! Get dy for edge
+   
+   qs1 = (rhou(n1)*dy - rhov(n1)*dx)/rho(n1)  ! Reused in flux
+   qs2 = (rhou(n2)*dy - rhov(n2)*dx)/rho(n2)  ! Reused in flux
 
-   qs1 = (rhou(t1)*dy - rhov(t1)*dx)/rho(t1)  ! Reused in flux
-   qs2 = (rhou(t2)*dy - rhov(t2)*dx)/rho(t2)  ! Reused in flux
-
-      
-   fs(1) = .5d0*(qs1*rho(t1)  + qs2*rho(t2))
-   fs(2) = .5d0*(qs1*rhou(t1) + qs2*rhou(t2)) + .5d0*(p(t1) + p(t2))*dy
-   fs(3) = .5d0*(qs1*rhov(t1) + qs2*rhov(t2)) - .5d0*(p(t1) + p(t2))*dx
-   fs(4) = .5d0*(qs1*(rhoE(t1)+p(t1)) + qs2*(rhoE(t2)+p(t2)))
+   fs(1) = .5d0*(qs1*rho(n1)  + qs2*rho(n2))
+   fs(2) = .5d0*(qs1*rhou(n1) + qs2*rhou(n2)) + .5d0*(p(n1) + p(n2))*dy
+   fs(3) = .5d0*(qs1*rhov(n1) + qs2*rhov(n2)) - .5d0*(p(n1) + p(n2))*dx
+   fs(4) = .5d0*(qs1*(rhoE(n1)+p(n1)) + qs2*(rhoE(n2)+p(n2)))
 
    ! Add edge fluxes up for each triangle
-   flux(:,t1) = flux(:,t1) - fs/area(t1)
-   flux(:,t2) = flux(:,t2) + fs/area(t2)
+   flux(:,t1) = flux(:,t1) - fs !!/area(t1)  ** Need areas here ??
+   flux(:,t2) = flux(:,t2) + fs !!/area(t2)
 
-   
    PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
    PRINT*,t2,real(-fs(1))
 END DO
@@ -144,17 +155,19 @@ END DO
 ! Some loop over the boundary edges
 DO i=1,size(bound)
    
-   e = bound(i)
-   t1 = edg(3,e) ! Tri 1 of the edge
-   t2 = edg(4,e) ! Tri 2 of the edge
-   bc = edg(5,e)
+   e = bound(i)  ! Get the boundary edge index
+   t1 = edg(1,e) ! Node 1 of tri 1
+   t2 = edg(3,e) ! Node 1 of tri 2
+   bc = edg(5,e) ! BC flag to set the flux here
+
    CALL bound_edge(e,bc,fs) 
    
    ! Add edge fluxes up for each triangle
-    flux(:,t1) = flux(:,t1) - fs/area(t1)
-
-    !print*,real(fs(4))
-    PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
+   IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs !/area(t1)
+   IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) - fs !/area(t1)
+    
+   !print*,real(fs(4))
+   PRINT*,t1,real(fs(1)) !,real(dx),real(dy)
 
 END DO
 
@@ -174,11 +187,11 @@ DOUBLE PRECISION :: rhoT,rhouT,rhovT,pT,rhoET,qs1,dx,dy
 
 IF (bc == 1) THEN      ! Free stream
    
-   n1 = edg(1,e) ! Node 1 of the edge
-   n2 = edg(2,e) ! Node 2 of the edge
-   t1 = edg(3,e) ! Tri 1 of the edge
-   t2 = edg(4,e) ! Tri 2 of the edge
-
+   t1 = edg(1,e) ! Node 1 of tri 1
+   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
+   t2 = edg(3,e) ! Node 1 of tri 2
+   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
+   
    dx = x(n2) - x(n1)   ! Get dx for edge
    dy = y(n2) - y(n1)   ! Get dy for edge
    
@@ -198,6 +211,8 @@ IF (bc == 1) THEN      ! Free stream
    fs(4) = qs1*(rhoET+pT)
 
 ELSEIF (bc == 2) THEN  ! Slip wall
+
+   fs = 0.0d0
 
 ELSEIF (bc == 3) THEN  ! Outflow
 

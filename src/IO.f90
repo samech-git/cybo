@@ -19,7 +19,7 @@ USE euler
 USE mesh
 USE inputs
 IMPLICIT NONE
-DOUBLE PRECISION, DIMENSION(numpts) :: rhop,rhoup,rhovp
+!DOUBLE PRECISION, DIMENSION(numpts) :: rhop,rhoup,rhovp
 INTEGER, DIMENSION(numpts) :: sump
 INTEGER :: funit,i
 INTEGER :: n1,n2,n3
@@ -31,48 +31,47 @@ write(file_num,'(I4.4)') count
 tecout = adjustr(trim(out_file)) // '_' // &
      adjustr(trim(file_num)) // '.tec'
 
-rhop = 0.0d0
-sump = 0
-DO i=1,numtri
-   n1 = tri(1,i)
-   n2 = tri(2,i)
-   n3 = tri(3,i)
-   rhop(n1) = rhop(n1) + rho(i)
-   rhop(n2) = rhop(n2) + rho(i)
-   rhop(n3) = rhop(n3) + rho(i)
-   
-   rhoup(n1) = rhoup(n1) + rhou(i)
-   rhoup(n2) = rhoup(n2) + rhou(i)
-   rhoup(n3) = rhoup(n3) + rhou(i)
-   
-   rhovp(n1) = rhovp(n1) + rhov(i)
-   rhovp(n2) = rhovp(n2) + rhov(i)
-   rhovp(n3) = rhovp(n3) + rhov(i)
+!!$rhop = 0.0d0
+!!$sump = 0
+!!$DO i=1,numtri
+!!$   n1 = tri(1,i)
+!!$   n2 = tri(2,i)
+!!$   n3 = tri(3,i)
+!!$   rhop(n1) = rhop(n1) + rho(i)
+!!$   rhop(n2) = rhop(n2) + rho(i)
+!!$   rhop(n3) = rhop(n3) + rho(i)
+!!$   
+!!$   rhoup(n1) = rhoup(n1) + rhou(i)
+!!$   rhoup(n2) = rhoup(n2) + rhou(i)
+!!$   rhoup(n3) = rhoup(n3) + rhou(i)
+!!$   
+!!$   rhovp(n1) = rhovp(n1) + rhov(i)
+!!$   rhovp(n2) = rhovp(n2) + rhov(i)
+!!$   rhovp(n3) = rhovp(n3) + rhov(i)
+!!$
+!!$   sump(n1) = sump(n1) + 1
+!!$   sump(n2) = sump(n2) + 1
+!!$   sump(n3) = sump(n3) + 1
+!!$END DO
+!!$rhop = rhop / dble(sump)
+!!$rhoup = rhoup / dble(sump)
+!!$rhovp = rhovp / dble(sump)
 
-   sump(n1) = sump(n1) + 1
-   sump(n2) = sump(n2) + 1
-   sump(n3) = sump(n3) + 1
+OPEN(funit,file=tecout,status='unknown')
+WRITE(funit,*) 'TITLE = "CYBO output" '
+WRITE(funit,*) 'VARIABLES="X","Y","rho","u","v","p" '
+WRITE(funit,*) 'ZONE F=FEPOINT,ET=TRIANGLE'
+WRITE(funit,*) 'N=',numpts,',E=',numtri
+
+DO i=1,numpts
+!   WRITE(funit,*) x(i),y(i),rho(i),rhou(i)/rho(i),rhov(i)/rho(i),p(i)      ! Double precision write 
+   WRITE(funit,*) real(x(i)),real(y(i)),real(rho(i)),real(rhou(i)/rho(i)),real(rhov(i)/rho(i)),real(p(i))      ! Single precision write 
 END DO
-rhop = rhop / dble(sump)
-rhoup = rhoup / dble(sump)
-rhovp = rhovp / dble(sump)
+DO i=1,numtri
+   WRITE(funit,*) tri(1,i),tri(2,i),tri(3,i)
+END DO
 
-open(funit,file=tecout,status='unknown')
-write(funit,*) 'TITLE = "CYBO output" '
-write(funit,*) 'VARIABLES="X","Y","rho","u","v" '
-write(funit,*) 'ZONE F=FEPOINT,ET=TRIANGLE'
-write(funit,*) 'N=',numpts,',E=',numtri
-
-
-do i=1,numpts
-   !write(funit,*) real(x(i)),real(y(i)),real(u(i)) ! Single precision write
-   write(funit,*) x(i),y(i),rhop(i),rhoup(i),rhovp(i)      ! Double precision write 
-end do
-do i=1,numtri
-   write(funit,*) tri(1,i),tri(2,i),tri(3,i)
-end do
-
-close(funit)
+CLOSE(funit)
 
 
 END SUBROUTINE
@@ -143,6 +142,7 @@ WRITE(*,*),'Nodes:',numpts
 WRITE(*,*),'Triangles:',numtri
 WRITE(*,*),'Edges:',numedg,'(',size(bound),'boundary +',size(inter),'interior)'
 
+! Calculate the Area for each triangle
 DO i=1,numtri
    n1 = tri(1,i)
    n2 = tri(2,i)
