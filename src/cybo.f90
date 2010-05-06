@@ -61,7 +61,7 @@ inlet(3) = rho_in*v_in
 inlet(4) = p_in
 
 rho = rho_in + rho_in*.1*exp( -((x-.5)**2 + (y-.5)**2)/0.01 ) ! Gauss
-rho = rho_in
+!rho = rho_in
 rhou = rho_in*u_in
 rhov = rho_in*v_in
 p = P_in
