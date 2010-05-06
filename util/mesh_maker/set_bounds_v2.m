@@ -1,4 +1,4 @@
-function set_bounds(p,t)
+function set_bounds_v2(p,t)
 
 clc;
 close all;
@@ -6,12 +6,12 @@ close all;
 % GUI data structure
 data = struct('buttons'  ,[], ...
               'init'     ,[], ...   % Initial conditions & flow variables
-              'animation',[], ...   % Animation settings
+              'animation',[], ...   % Animation settings 
               'settings' ,[], ...   % Integration settings
               'mesh'     ,[], ...   % Mesh data
               'bc'       ,[], ...   % Boundary conditions
               'flag'     ,[]);      % Edges marked for lift/drag calc
-         
+          
           % Run fixmesh to make sure the mesh is CCW and non-duplicate
 [p,t] = fixmesh(p,t);
 
@@ -25,7 +25,7 @@ data.flag      = false(size(data.mesh.e,1),1);
 
 % Set GUI data
 set(figure(1),'UserData',data);
-         
+          
 
 % Main window
 set(figure(1), ...
@@ -34,7 +34,7 @@ set(figure(1), ...
              'NumberTitle','Off'       , ...
              'UserData',data); axis off
      
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         
 %                                 Frames
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -46,7 +46,7 @@ uicontrol('Style'          ,'Frame'      , ...
           'Units'          ,'Normalized' , ...
           'Position'       ,mfrm         , ...
           'BackgroundColor',frmcol);
-     
+      
 % BC frame
 bfrm = [0.1,0.2,0.7,0.3];
 uicontrol('Style'          ,'Frame'      , ...
@@ -83,27 +83,27 @@ uicontrol('Style'          ,'Text'                        , ...
 btnx = 0.1;
 btny = 0.05;
    
-% Show mesh                      
+% Show mesh                       
 data.button(5) = uicontrol('Style'   ,'PushButton'                          , ...
                            'Units'   ,'Normalized'                          , ...
                            'Position',[mfrm(1)+.1,mfrm(2)+0.05,btnx,btny], ...
                            'String'  ,'View'                                , ...
-                           'Callback',@show_mesh);    
-% Median mesh                      
+                           'Callback',@show_mesh);     
+% Median mesh                       
 data.button(6) = uicontrol('Style'   ,'PushButton'                          , ...
                            'Units'   ,'Normalized'                          , ...
                            'Position',[mfrm(1)+.5,mfrm(2)+0.05,btnx,btny], ...
                            'String'  ,'Median'                              , ...
                            'Callback',@show_median);                            
                        
-% Set boundary conditions          
+% Set boundary conditions           
 data.button(7) = uicontrol('Style'   ,'PushButton'                              , ...
                            'Units'   ,'Normalized'                              , ...
                            'Position',[bfrm(1)+.18+0.075,bfrm(2)+0.05,btnx+0.1,btny], ...
                            'String'  ,'Velocity/Pressure'                       , ...
                            'Callback',@set_bc);    
 
-                                                                   
+                                                                    
 % Save
 data.button(15) = uicontrol('Style'   ,'PushButton'        , ...
                             'Units'   ,'Normalized'        , ...
@@ -111,9 +111,9 @@ data.button(15) = uicontrol('Style'   ,'PushButton'        , ...
                             'String'  ,'Save'              , ...
                             'Callback',@save_data);  
                                
-                                           
+                                            
 % Pass button handles                        
-set(figure(1),'UserData',data);  
+set(figure(1),'UserData',data);   
 
                        
 return
@@ -141,13 +141,43 @@ t    = data.mesh.t;
 %W    = data.init.W;
 %time = data.init.time;
 %resx = data.init.resx;
-%resy = data.init.resy;
-e = data.mesh.e;                 % List of 2 points which connect each edge
+%resy = data.init.resy; 
+e = data.mesh.e;
+epts = e(:,1:2);            % List of 2 points which connect each edge
 e2t = data.mesh.e2t;        % List of two triangles separated by the edge
-bc = data.bc;  % This is the bc flag for each edge bc value
+bc = data.bc;  % This is the bc flag for each edge bc value 
 
-e(:,3:4) = e2t;
-e(:,5) = bc;      % Form 3 element array for EDGE (pt1,pt2,t1,t2,bc_type)
+% Write edge data for diamond structure - C.Yu 5/5/10
+n1 = epts(1);
+n2 = epts(2);
+t1 = e2t(1);
+t2 = e2t(2);
+
+if (t1 == 0) 
+    nt1 = 0;
+else 
+    for ind=1:3
+        if (t1(ind) ~= n1 & t1(ind) ~= n2) nt1 = t1(ind); it1 = ind; end
+    end
+end
+    
+if (t2 == 0) 
+    nt2 = 0;
+else
+    for ind=1:3
+        if (t2(ind) ~= n1 & t2(ind) ~= n2) nt2 = t2(ind); it2 = ind; end
+    end
+end
+
+e(:,1) = nt1; 
+if (t1 ~= 0) e(:,2) = t1(it1+1);
+else         e(:,2) = t2(it2-1);
+e(:,3) = nt2;
+if (t2 ~= 0) e(:,4) = t2(it2+1);
+else         e(:,4) = t1(it1-1);   
+
+e(:,5) = bc;    
+
 
 % Clear others
 clear('data'); clear('varargin');
@@ -199,7 +229,6 @@ end
 % Run fixmesh to make sure the mesh is CCW and non-duplicate
 [p,t] = fixmesh(p,t);
 
-
 % Setup the mesh based data structures
 data.mesh      = data_structure(p,t);
 data.bc        = repmat(-1,size(data.mesh.e,1),1);
@@ -226,9 +255,9 @@ if isempty(data.mesh)
     return
 end
 
-set(figure,'Name','Mesh');
+set(figure,'Name','Mesh'); 
 
-patch('faces',data.mesh.t,'vertices',data.mesh.p,'facecolor','w','edgecolor','b');
+patch('faces',data.mesh.t,'vertices',data.mesh.p,'facecolor','w','edgecolor','b'); 
 
 axis equal, axis off
 
@@ -251,7 +280,7 @@ if isempty(data.mesh)
     return
 end
 
-set(figure,'Name','Median Dual Mesh');
+set(figure,'Name','Median Dual Mesh'); 
 
 p    = data.mesh.p;     % Nodes
 t    = data.mesh.t;     % Triangulation
@@ -292,7 +321,7 @@ for k = 1:numn
             xline(next,2) = pc(t2,1);
             yline(next,1) = my;
             yline(next,2) = pc(t2,2);
-            next          = next+1;
+            next          = next+1; 
         end
         % Counter
         m = m+1;
@@ -303,7 +332,7 @@ close(w)
 % Triangles
 patch('faces',t,'vertices',p,'facecolor','none','edgecolor','w'); axis equal, axis off, hold on
 % Median CV's
-patch('xdata',xline','ydata',yline','facecolor','none','edgecolor','b');
+patch('xdata',xline','ydata',yline','facecolor','none','edgecolor','b'); 
 
 title([num2str(size(data.mesh.p,1)),' Nodes, ', ...
        num2str(size(data.mesh.t,1)),' Triangles'])
@@ -327,7 +356,7 @@ set(figure, ...
           'Name'        ,'Boundary Conditions', ...
           'DoubleBuffer','On'                 , ...
           'Units'       ,'Normalized');
-     
+      
 axes('Units'   ,'Normalized', ...
      'Position',[0.25,0.1,0.7,0.8]);      
      
@@ -345,7 +374,7 @@ b2 = uicontrol('Style','PushButton'           , ...
                'Units','Normalized'           , ...
                'Position',[0.05,0.1,btnx,btny], ...
                'String','Set'                 , ...
-               'Callback',@bc_type);  
+               'Callback',@bc_type);   
            
 b3 = uicontrol('Style','PushButton'           , ...
                'Units','Normalized'           , ...
@@ -359,7 +388,7 @@ b3 = uicontrol('Style','PushButton'           , ...
 %                'String'  ,'Help'              , ...
 %                'Callback',@help_bc);              
            
-% Headers          
+% Headers           
 uicontrol('Style'          ,'Text'              , ...
           'Units'          ,'Normalized'        , ...
           'Position'       ,[0.025,0.8,0.2,0.05], ...
@@ -407,12 +436,11 @@ plot(pe(unassigned,1),pe(unassigned,2),'k.', ...
 %      pe(pressure,1)  ,pe(pressure,2)  ,'g.', ...
 %      pe(gradient,1)  ,pe(gradient,2)  ,'y.'), axis equal, axis off, hold on
 
-
 % Plot edges
-patch('faces',e(unassigned,:),'vertices',data.mesh.p,'facecolor','none','edgecolor','k');
-patch('faces',e(freestream,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','b');
-patch('faces',e(slipwall,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','g');
-patch('faces',e(outflow,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','y');
+patch('faces',e(unassigned,:),'vertices',data.mesh.p,'facecolor','none','edgecolor','k'); 
+patch('faces',e(freestream,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','b'); 
+patch('faces',e(slipwall,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','g'); 
+patch('faces',e(outflow,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','y'); 
 
 % Plot arrows for velocity type
 %if any(velocity)
@@ -441,10 +469,10 @@ return
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function clear_sel(varargin)
 
-% Clear current mouse selection
+% Clear current mouse selection 
 
 % Get GUI data
-fig    = gcf;
+fig    = gcf; 
 ax     = gca;
 bcdata = get(fig,'UserData');
 
@@ -466,7 +494,7 @@ plot(pe(bcdata.unassigned,1),pe(bcdata.unassigned,2),'k.', ...
      pe(bcdata.gradient,1)  ,pe(bcdata.gradient,2)  ,'y.', ...
      pm(in,1)               ,pm(in,2)               ,'r.');
 
-set(fig,'UserData',bcdata);
+set(fig,'UserData',bcdata); 
  
 return
 
@@ -477,7 +505,7 @@ function select(varargin)
 % Select boundary midpoints using the mouse
 
 % Get GUI data
-fig    = gcf;
+fig    = gcf; 
 ax     = gca;
 bcdata = get(fig,'UserData');
 
@@ -496,19 +524,19 @@ plot(pe(bcdata.unassigned,1),pe(bcdata.unassigned,2),'k.', ...
      pe(bcdata.gradient,1)  ,pe(bcdata.gradient,2)  ,'y.', ...
      pm(in,1)               ,pm(in,2)               ,'r.');
 
-title('Right click to confirm')
+title('Right click to confirm') 
  
 % Set mouse to "crosshair"
 set(fig,'Pointer','crosshair');
 
 while true
-   
+    
     % Wait for mouse click
     waitforbuttonpress
-   
+    
     % Grab type of mouse click
     btn = get(fig,'SelectionType');
-   
+    
     if strcmp(btn,'normal')
         % Draw selection box
         p1 = get(ax,'CurrentPoint');
@@ -573,7 +601,7 @@ data = get(figure(1),'Userdata'); figure(fig);
              
 if ok
     if i==1     % FreeStream
-       
+        
         data.bc(be(in),1) = repmat( 1 ,sum(in),1);  
     else        % Pressure
         if i==2
@@ -612,10 +640,9 @@ plot(pe(bcdata.unassigned,1),pe(bcdata.unassigned,2),'k.', ...
      pe(bcdata.outflow,1)  ,pe(bcdata.outflow,2)  ,'y.', ...
      pm(in,1)               ,pm(in,2)               ,'r.'), axis equal, axis off, hold on
 
-
 % Plot edges
-patch('faces',e(unassigned,:),'vertices',data.mesh.p,'facecolor','none','edgecolor','k');
-patch('faces',e(freestream,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','b');
+patch('faces',e(unassigned,:),'vertices',data.mesh.p,'facecolor','none','edgecolor','k'); 
+patch('faces',e(freestream,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','b'); 
 patch('faces',e(slipwall,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','g');  
 patch('faces',e(outflow,:)  ,'vertices',data.mesh.p,'facecolor','none','edgecolor','y');  
 
@@ -650,7 +677,7 @@ t           = reshape(jx,size(t));
 p           = p(pix,:);
 
 % CCW ordering
-p1  = p(t(:,1),:);
+p1  = p(t(:,1),:); 
 d12 = p(t(:,2),:)-p1;
 d13 = p(t(:,3),:)-p1;
 
@@ -659,3 +686,4 @@ flip          = (d12(:,1).*d13(:,2)-d12(:,2).*d13(:,1))<0;
 t(flip,[1,2]) = t(flip,[2,1]);
 
 return
+
