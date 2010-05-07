@@ -35,7 +35,6 @@ DO k=1,tsmax
 END DO
 
 
-
 END SUBROUTINE 
 
 
@@ -62,14 +61,16 @@ IMPLICIT NONE
 DOUBLE PRECISION, INTENT(IN) :: dt
 DOUBLE PRECISION, DIMENSION(4,numpts) :: flux,phi,tmp1,tmp2
 INTEGER :: i
+
 !	Initialize some intermediate arrays
 tmp1 = 0.0d0
 tmp2 = 0.0d0
 phi = 0.0d0
 
+
 ! 5 Stage RK4 step
 !!$DO i=1,5
-!!$  	
+!!$   flux = 0.0d0
 !!$   CALL get_flux(flux)
 !!$    
 !!$   tmp1 =  Ark(i)*phi
@@ -83,11 +84,11 @@ phi = 0.0d0
 !!$END DO
 
 ! Forward Euler Time stepping
+flux = 0.0d0
 CALL get_flux(flux)
 w(1:4,:) = w(1:4,:) - dt*flux
-CALL set_bc_points()
+CALL set_bc_points
 CALL get_pressure
-
 
 END SUBROUTINE
 
@@ -105,13 +106,12 @@ SUBROUTINE get_flux(flux)
 USE euler
 USE mesh
 IMPLICIT NONE
-DOUBLE PRECISION, DIMENSION(4,numtri), INTENT(OUT) :: flux
+DOUBLE PRECISION, DIMENSION(4,numtri), INTENT(INOUT) :: flux
 DOUBLE PRECISION, DIMENSION(4) :: fs
 INTEGER :: i,n1,n2,t1,t2
 INTEGER :: bc,e
 DOUBLE PRECISION :: dx,dy,qs1,qs2 
 !! Routine to get the flux (residual) for each cell volume
-flux = 0.0d0
 
 !!         T1        Diagram of how the edge flux is used
 !!         /\        to update the total flux of T1 and T2.
@@ -151,7 +151,7 @@ DO i=1,size(inter)
    flux(:,t2) = flux(:,t2) + fs /area(1)
 
 END DO
-
+!!$
 ! Some loop over the boundary edges
 DO i=1,size(bound)
    
@@ -220,7 +220,7 @@ END IF
 END SUBROUTINE
 
 
-SUBROUTINE set_bc_points()
+SUBROUTINE set_bc_points
 USE euler
 USE mesh
 

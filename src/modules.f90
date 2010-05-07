@@ -65,7 +65,7 @@ USE mesh, ONLY: numpts
 USE inputs, ONLY: gamma
 IMPLICIT NONE
 ALLOCATE(w(5,numpts))
-w(:,:) = 0.0d0
+w = 0.0d0
 rho  => w(1,:)
 rhou => w(2,:)
 rhov => w(3,:)

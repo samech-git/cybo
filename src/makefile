@@ -13,6 +13,7 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 f90 = ifort
+#f90 = gfortran
 flags = -O3
 exec = cybo
 
@@ -26,6 +27,4 @@ $(exec) : $(source)
 	$(f90) $(flags) -c $<
 
 clean:
-	rm -f *.o *.mod
-clobber: 
 	rm -f *.o *.mod ../bin/$(exec)
