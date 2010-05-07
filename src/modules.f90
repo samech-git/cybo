@@ -55,7 +55,7 @@ allocate(x(numpts))
 allocate(y(numpts))
 allocate(u(numpts))
 allocate(tri(3,numtri))
-ALLOCATE(area(numtri))
+ALLOCATE(area(numpts))
 allocate(edg(5,numedg))
 END SUBROUTINE
 

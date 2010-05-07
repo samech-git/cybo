@@ -84,6 +84,7 @@ USE inputs, ONLY: mesh_name
 USE mesh
 IMPLICIT NONE
 INTEGER :: funit,i,count,n1,n2,n3
+DOUBLE PRECISION :: tmp
 CHARACTER(LEN=30) :: comments
 
 funit=2
@@ -142,14 +143,19 @@ WRITE(*,*),'Nodes:',numpts
 WRITE(*,*),'Triangles:',numtri
 WRITE(*,*),'Edges:',numedg,'(',size(bound),'boundary +',size(inter),'interior)'
 
-! Calculate the Area for each triangle
+! Calculate the summed area around each node (note: area spans numpts)
+area = 0.d0
 DO i=1,numtri
    n1 = tri(1,i)
    n2 = tri(2,i)
    n3 = tri(3,i)
 
-   area(i) = .5d0*( x(n1)*(y(n2)-y(n3)) & 
-        & +x(n2)*(y(n3)-y(n1))+x(n3)*(y(n1)-y(n2)))
-END DO 
+   tmp = .5d0*( x(n1)*(y(n2)-y(n3)) & 
+            & +x(n2)*(y(n3)-y(n1))+x(n3)*(y(n1)-y(n2)))
+
+   area(n1) = area(n1) + tmp 
+   area(n2) = area(n2) + tmp
+   area(n3) = area(n3) + tmp
+END DO
 
 END SUBROUTINE

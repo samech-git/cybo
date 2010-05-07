@@ -147,8 +147,8 @@ DO i=1,size(inter)
    fs(4) = .5d0*(qs1*(rhoE(n1)+p(n1)) + qs2*(rhoE(n2)+p(n2)))
 
    ! Add edge fluxes up for each triangle
-   flux(:,t1) = flux(:,t1) - fs /area(1)  !** Need areas here ??
-   flux(:,t2) = flux(:,t2) + fs /area(1)
+   flux(:,t1) = flux(:,t1) - fs /area(t1)  !** Need areas here ??
+   flux(:,t2) = flux(:,t2) + fs /area(t2)
 
 END DO
 !!$
@@ -163,8 +163,8 @@ DO i=1,size(bound)
    CALL bound_edge(e,bc,fs) 
    
    ! Add edge fluxes up for each triangle
-   IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs /area(1)
-   IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) - fs /area(1)
+   IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs /area(t1)
+   IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) - fs /area(t2)
     
 END DO
 
