@@ -50,7 +50,7 @@ DOUBLE PRECISION :: u_in,v_in,P_in,rho_in
 
 CALL allocate_euler
 
-rho_in = 1.0d0
+rho_in = 1.4d0
 P_in = 1.0d0
 u_in = 0.0d0
 v_in = 0.0d0
@@ -60,13 +60,14 @@ inlet(2) = rho_in*u_in
 inlet(3) = rho_in*v_in
 inlet(4) = p_in
 
-rho = rho_in + rho_in*.1*exp( -((x-.5)**2 + (y-.5)**2)/0.01 ) ! Gauss
-!rho = rho_in
+!rho = rho_in + rho_in*3*exp( -((x-.5)**2 + (y-.5)**2)/0.01 ) ! Gauss
+p = p_in + p_in*0.2*(1.0 + tanh( -((x-.5)**2 + (y-.5)**2)/0.01 )) ! Gauss
+rho = rho_in !p
 rhou = rho_in*u_in
 rhov = rho_in*v_in
-p = P_in
+!p = P_in
 
-rhoE = rho_in * (P_in / gm1  + rho_in*(u_in**2.0 + v_in**2.0) / 2.0d0 )
+rhoE = rho * (P / gm1  + rho*(u_in**2.0 + v_in**2.0) / 2.0d0 )
 
 
 CALL get_pressure

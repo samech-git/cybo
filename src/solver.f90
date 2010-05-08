@@ -46,7 +46,7 @@ IMPLICIT NONE
 DOUBLE PRECISION :: dt
 
 ! Some routine that set the dt_max for the grid
-dt = .001d0 !!!!!
+dt = .0005d0 !!!!!
 !!!!!!!!!!!
 !!!!!!!!!!!
 
@@ -69,26 +69,27 @@ phi = 0.0d0
 
 
 ! 5 Stage RK4 step
-!!$DO i=1,5
-!!$   flux = 0.0d0
-!!$   CALL get_flux(flux)
-!!$    
-!!$   tmp1 =  Ark(i)*phi
-!!$   PHI = -dt*flux + tmp1
-!!$   
-!!$   tmp2 =  Brk(i)*phi
-!!$   w(1:4,:) =  w(1:4,:) + tmp2 
-!!$   
-!!$   CALL get_pressure
-!!$   
-!!$END DO
+DO i=1,5
+   flux = 0.0d0
+   CALL get_flux(flux)
+    
+   tmp1 =  Ark(i)*phi
+   PHI = -dt*flux + tmp1
+   
+   tmp2 =  Brk(i)*phi
+   w(1:4,:) =  w(1:4,:) + tmp2 
+   
+   CALL set_bc_points
+   CALL get_pressure
+   
+END DO
 
 ! Forward Euler Time stepping
-flux = 0.0d0
-CALL get_flux(flux)
-w(1:4,:) = w(1:4,:) - dt*flux
-CALL set_bc_points
-CALL get_pressure
+!flux = 0.0d0
+!CALL get_flux(flux)
+!w(1:4,:) = w(1:4,:) - dt*flux
+!CALL set_bc_points
+!CALL get_pressure
 
 END SUBROUTINE
 
@@ -105,12 +106,13 @@ END SUBROUTINE
 SUBROUTINE get_flux(flux)
 USE euler
 USE mesh
+USE inputs, ONLY: gamma
 IMPLICIT NONE
 DOUBLE PRECISION, DIMENSION(4,numtri), INTENT(INOUT) :: flux
-DOUBLE PRECISION, DIMENSION(4) :: fs
+DOUBLE PRECISION, DIMENSION(4) :: fs,dfs
 INTEGER :: i,n1,n2,t1,t2
 INTEGER :: bc,e
-DOUBLE PRECISION :: dx,dy,qs1,qs2 
+DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len
 !! Routine to get the flux (residual) for each cell volume
 
 !!         T1        Diagram of how the edge flux is used
@@ -146,9 +148,24 @@ DO i=1,size(inter)
    fs(3) = .5d0*(qs1*rhov(n1) + qs2*rhov(n2)) - .5d0*(p(n1) + p(n2))*dx
    fs(4) = .5d0*(qs1*(rhoE(n1)+p(n1)) + qs2*(rhoE(n2)+p(n2)))
 
-   ! Add edge fluxes up for each triangle
-   flux(:,t1) = flux(:,t1) - fs /area(t1)  !** Need areas here ??
-   flux(:,t2) = flux(:,t2) + fs /area(t2)
+   ! Add scalar diffusion
+   c1 = sqrt( p(n1)*gamma/rho(n1))
+   c2 = sqrt( p(n2)*gamma/rho(n2))
+   !dx = x(t2) - x(t1)   ! Get dx for edge
+   !dy = y(t2) - y(t1)   ! Get dy for edge
+   len = sqrt(dx**2 + dy**2)
+   alpha = abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0*len
+   !alpha = 0.0d0
+   dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2))
+   
+   ! Add edge fluxes up for each T point
+   flux(:,t1) = flux(:,t1) - fs / area(t1)  !** Need areas here ??
+   flux(:,t2) = flux(:,t2) + fs / area(t2)
+
+   ! Add diffusive fluxes for each N point
+   flux(:,n1) = flux(:,n1) - dfs / area(n1)
+   flux(:,n2) = flux(:,n2) + dfs / area(n2)
+   
 
 END DO
 !!$
@@ -226,25 +243,29 @@ USE mesh
 
 IMPLICIT NONE
 DOUBLE PRECISION :: pT
-INTEGER :: i ,n1,n2,e
+INTEGER :: i ,n1,n2,e,bc
 
 DO i=1,size(bound)
 
    e = bound(i)
    n1 = edg(2,e)
    n2 = edg(4,e)
+   bc = edg(5,e)
 
-   rho(n1) = inlet(1)
-   rhou(n1) = inlet(2)
-   rhov(n1) = inlet(3)
-   pT = inlet(4)
-   rhoE(n1) = pT/gm1 + (rhou(n1)**2+rhov(n1)**2)/(2.0d0*rho(n1))
+   IF (bc == 1) THEN
+      
+      rho(n1) = inlet(1)
+      rhou(n1) = inlet(2)
+      rhov(n1) = inlet(3)
+      pT = inlet(4)
+      rhoE(n1) = pT/gm1 + (rhou(n1)**2+rhov(n1)**2)/(2.0d0*rho(n1))
    
-   rho(n2) = inlet(1)
-   rhou(n2) = inlet(2)
-   rhov(n2) = inlet(3)
-   pT = inlet(4)
-   rhoE(n2) = pT/gm1 + (rhou(n2)**2+rhov(n2)**2)/(2.0d0*rho(n2))
+      rho(n2) = inlet(1)
+      rhou(n2) = inlet(2)
+      rhov(n2) = inlet(3)
+      pT = inlet(4)
+      rhoE(n2) = pT/gm1 + (rhou(n2)**2+rhov(n2)**2)/(2.0d0*rho(n2))
+   END IF
    
 END DO
 
