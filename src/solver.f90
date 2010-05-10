@@ -56,6 +56,7 @@ END SUBROUTINE
 SUBROUTINE rk4step(dt)
 USE rk4
 USE mesh, ONLY: numpts
+USE mesh, ONLY: bound
 USE euler
 IMPLICIT NONE
 DOUBLE PRECISION, INTENT(IN) :: dt
@@ -67,7 +68,6 @@ tmp1 = 0.0d0
 tmp2 = 0.0d0
 phi = 0.0d0
 
-
 ! 5 Stage RK4 step
 DO i=1,5
    flux = 0.0d0
@@ -78,10 +78,8 @@ DO i=1,5
    
    tmp2 =  Brk(i)*phi
    w(1:4,:) =  w(1:4,:) + tmp2 
-   
    CALL set_bc_points
    CALL get_pressure
-   
 END DO
 
 ! Forward Euler Time stepping
@@ -99,8 +97,8 @@ SUBROUTINE get_pressure
 USE euler
 IMPLICIT NONE
 
-p = gm1*(rhoE/rho - (rhou**2 + rhov**2)/(2.0d0*rho) )
- 
+p = gm1*(rhoE - (rhou**2 + rhov**2)/(2.0d0*rho) )
+
 END SUBROUTINE
 
 SUBROUTINE get_flux(flux)
@@ -151,15 +149,15 @@ DO i=1,size(inter)
    ! Add scalar diffusion
    c1 = sqrt( p(n1)*gamma/rho(n1))
    c2 = sqrt( p(n2)*gamma/rho(n2))
-   !dx = x(t2) - x(t1)   ! Get dx for edge
-   !dy = y(t2) - y(t1)   ! Get dy for edge
+   dx = x(t2) - x(t1)   ! Get dx for edge
+   dy = y(t2) - y(t1)   ! Get dy for edge
    len = sqrt(dx**2 + dy**2)
-   alpha = abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0*len
+   alpha = ( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len
    !alpha = 0.0d0
    dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2))
    
    ! Add edge fluxes up for each T point
-   flux(:,t1) = flux(:,t1) - fs / area(t1)  !** Need areas here ??
+   flux(:,t1) = flux(:,t1) - fs / area(t1) 
    flux(:,t2) = flux(:,t2) + fs / area(t2)
 
    ! Add diffusive fluxes for each N point
@@ -181,7 +179,7 @@ DO i=1,size(bound)
    
    ! Add edge fluxes up for each triangle
    IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs /area(t1)
-   IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) - fs /area(t2)
+   IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) + fs /area(t2)
     
 END DO
 
@@ -214,7 +212,7 @@ IF (bc == 1) THEN      ! Free stream
    rhouT = inlet(2)
    rhovT = inlet(3)
    pT = inlet(4)
-   rhoET = pT/gm1 + (rhouT**2+rhovT**2)/(2.0d0*rhoT)
+   rhoET = pT/gm1 !+ (rhouT**2 + rhovT**2)/(2.0d0*rhoT)
    
    qs1 = (rhouT*dy - rhovT*dx)/rhoT  ! Reused in flux
       
@@ -258,12 +256,14 @@ DO i=1,size(bound)
       rhou(n1) = inlet(2)
       rhov(n1) = inlet(3)
       pT = inlet(4)
+      p(n1) = pT
       rhoE(n1) = pT/gm1 + (rhou(n1)**2+rhov(n1)**2)/(2.0d0*rho(n1))
    
       rho(n2) = inlet(1)
       rhou(n2) = inlet(2)
       rhov(n2) = inlet(3)
       pT = inlet(4)
+      p(n2) = pT
       rhoE(n2) = pT/gm1 + (rhou(n2)**2+rhov(n2)**2)/(2.0d0*rho(n2))
    END IF
    
