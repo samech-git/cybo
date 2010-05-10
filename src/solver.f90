@@ -178,8 +178,16 @@ DO i=1,size(bound)
    CALL bound_edge(e,bc,fs) 
    
    ! Add edge fluxes up for each triangle
-   IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs /area(t1)
-   IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) + fs /area(t2)
+   IF(t1 .NE. 0) THEN
+      flux(:,t1) = flux(:,t1) - fs/area(t1)   ! Contribution to interior node
+      flux(:,n1) = flux(:,n1) + fs/area(n1)   ! Contribution to edge node 1
+      flux(:,n2) = flux(:,n2) + fs/area(n2)   ! ...edge node 2
+   END IF
+   IF(t2 .NE. 0) THEN
+      flux(:,t2) = flux(:,t2) + fs/area(t2)   ! Contribution to interior node
+      flux(:,n1) = flux(:,n1) - fs/area(n1)   ! Contribution to edge node 1
+      flux(:,n2) = flux(:,n2) - fs/area(n2)   ! ...edge node 2
+   END IF
     
 END DO
 
@@ -194,36 +202,26 @@ IMPLICIT NONE
 DOUBLE PRECISION, DIMENSION(4), INTENT(OUT) :: fs
 INTEGER,INTENT(IN) :: e,bc
 INTEGER :: n1,n2,t1,t2,i
-DOUBLE PRECISION :: rhoT,rhouT,rhovT,pT,rhoET,qs1,dx,dy
+DOUBLE PRECISION :: rhoT,rhouT,rhovT,pT,rhoET,qs1,qs2,dx,dy
 
-IF (bc == 1) THEN      ! Free stream
-   
-   t1 = edg(1,e) ! Node 1 of tri 1
-   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
-   t2 = edg(3,e) ! Node 1 of tri 2
-   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
-   
+IF (bc == 1 .or. bc == 2) THEN  ! Free stream or Slip wall
+   t1 = edg(1,e)
+   n1 = edg(2,e)
+   t2 = edg(3,e)
+   n2 = edg(4,e)
+
    dx = x(n2) - x(n1)   ! Get dx for edge
    dy = y(n2) - y(n1)   ! Get dy for edge
    
    !PRINT*,real(dx),real(dy)
    
-   rhoT = inlet(1)
-   rhouT = inlet(2)
-   rhovT = inlet(3)
-   pT = inlet(4)
-   rhoET = pT/gm1 !+ (rhouT**2 + rhovT**2)/(2.0d0*rhoT)
-   
-   qs1 = (rhouT*dy - rhovT*dx)/rhoT  ! Reused in flux
-      
-   fs(1) = qs1*rhoT
-   fs(2) = qs1*rhouT + pT*dy
-   fs(3) = qs1*rhovT - pT*dx
-   fs(4) = qs1*(rhoET+pT)
+   qs1 = (rhou(n1)*dy - rhov(n1)*dx)/rho(n1)  ! Reused in flux
+   qs2 = (rhou(n2)*dy - rhov(n2)*dx)/rho(n2)  ! Reused in flux
 
-ELSEIF (bc == 2) THEN  ! Slip wall
-
-   fs = 0.0d0
+   fs(1) = .5d0*(qs1*rho(n1)  + qs2*rho(n2))
+   fs(2) = .5d0*(qs1*rhou(n1) + qs2*rhou(n2)) + .5d0*(p(n1) + p(n2))*dy
+   fs(3) = .5d0*(qs1*rhov(n1) + qs2*rhov(n2)) - .5d0*(p(n1) + p(n2))*dx
+   fs(4) = .5d0*(qs1*(rhoE(n1)+p(n1)) + qs2*(rhoE(n2)+p(n2)))
 
 ELSEIF (bc == 3) THEN  ! Outflow
 
