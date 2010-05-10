@@ -178,15 +178,21 @@ DO i=1,size(bound)
    CALL bound_edge(e,bc,fs) 
    
    ! Add edge fluxes up for each triangle
-   IF(t1 .NE. 0) THEN
-      flux(:,t1) = flux(:,t1) - fs/area(t1)   ! Contribution to interior node
-      flux(:,n1) = flux(:,n1) + fs/area(n1)   ! Contribution to edge node 1
-      flux(:,n2) = flux(:,n2) + fs/area(n2)   ! ...edge node 2
-   END IF
-   IF(t2 .NE. 0) THEN
-      flux(:,t2) = flux(:,t2) + fs/area(t2)   ! Contribution to interior node
-      flux(:,n1) = flux(:,n1) - fs/area(n1)   ! Contribution to edge node 1
-      flux(:,n2) = flux(:,n2) - fs/area(n2)   ! ...edge node 2
+ 
+   IF(bc == 1 .or. bc == 3) THEN ! Free stream or outflow
+      IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs/area(t1)
+      IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) + fs/area(t2)
+   ELSE ! Wall
+      IF(t1 .NE. 0) THEN
+         flux(:,t1) = flux(:,t1) - fs/area(t1)   ! Contribution to interior node
+         flux(:,n1) = flux(:,n1) + fs/area(n1)   ! Contribution to edge node 1
+         flux(:,n2) = flux(:,n2) + fs/area(n2)   ! ...edge node 2
+      END IF
+      IF(t2 .NE. 0) THEN
+         flux(:,t2) = flux(:,t2) + fs/area(t2)   ! Contribution to interior node
+         flux(:,n1) = flux(:,n1) - fs/area(n1)   ! Contribution to edge node 1
+         flux(:,n2) = flux(:,n2) - fs/area(n2)   ! ...edge node 2
+      END IF
    END IF
     
 END DO
