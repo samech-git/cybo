@@ -484,13 +484,13 @@ wing(:,2) = af.z(off+1:end-off);
       x=linspace(0,1,50);
       y=-0.4*x.^2+0.4*x;
       
-      circ_arc=[x' y']
+      circ_arc=[x' y'];
       
       node = [-5,0; circ_arc; 6,0; 6,10; -5,10];
 
-      hdata.hmax = 0.1;
+      hdata.hmax = 0.2;
       hdata.fun = @const_h;
-      hdata.args = {-1,5,0,2,0.05};
+      hdata.args = {-1,2,0,4,0.025};
 
       options.dhmax = 0.1;
 

@@ -48,6 +48,8 @@ END DO
 
 CLOSE(funit)
 
+! Get the pressure distribution 
+CALL cp_plot
 
 END SUBROUTINE
 
@@ -134,3 +136,40 @@ DO i=1,numtri
 END DO
 
 END SUBROUTINE
+
+
+
+SUBROUTINE cp_plot
+USE euler
+USE mesh
+USE inputs
+IMPLICIT NONE
+DOUBLE PRECISION :: cp,cpf,pinf
+CHARACTER(LEN=90) :: cpout, file_num
+INTEGER :: i,e,bc,n,funit
+funit = 15
+
+WRITE(file_num,'(I4.4)') count
+cpout = adjustr(trim(out_file)) // '_cp.dat'
+
+OPEN(funit,file=cpout,status='unknown')
+WRITE(funit,*) '# x --- y --- (-cp) '
+
+cpf = 2.0d0 / (gamma * mach**2)
+pinf = inlet(4)
+
+DO i=1,size(bound)
+   e = bound(i)
+   bc = edg(5,e)
+   n  = edg(2,e)
+
+   IF (bc == 2) THEN
+      cp = cpf* ( p(n) / pinf - 1.0d0)
+      WRITE(funit,*) real(x(n)),real(y(n)),real(-cp)
+   END IF
+END DO
+
+
+CLOSE(funit)
+
+END SUBROUTINE cp_plot

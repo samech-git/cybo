@@ -15,8 +15,8 @@
 mach = 0.8d0			       ! Free-stream Mach number
 !!mesh_name = '../meshes/box_big.msh'  ! Mesh file location/name
 !!mesh_name = '../meshes/box_big.msh'  ! Mesh file location/name	
-mesh_name = '../meshes/naca0012.msh'  ! Mesh file location/name
-!!mesh_name = '../meshes/cylinder.msh'
+!!mesh_name = '../meshes/naca0012.msh'  ! Mesh file location/name
+mesh_name = '../meshes/bump.msh'
 out_file = 'naca'		       ! Base name for output file (out_file_####.tec)
 tsmax = 10000			       ! Maximum time steps to take
 out_freq = 100			       ! Output file Frequency
