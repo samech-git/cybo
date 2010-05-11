@@ -27,35 +27,10 @@ CHARACTER(LEN=90) :: tecout, file_num
 funit = 5
 
 count = count + 1        ! Increment this counter to get a database of files
+WRITE(*,*) 'Writing tec file',count
 write(file_num,'(I4.4)') count
 tecout = adjustr(trim(out_file)) // '_' // &
      adjustr(trim(file_num)) // '.tec'
-
-!!$rhop = 0.0d0
-!!$sump = 0
-!!$DO i=1,numtri
-!!$   n1 = tri(1,i)
-!!$   n2 = tri(2,i)
-!!$   n3 = tri(3,i)
-!!$   rhop(n1) = rhop(n1) + rho(i)
-!!$   rhop(n2) = rhop(n2) + rho(i)
-!!$   rhop(n3) = rhop(n3) + rho(i)
-!!$   
-!!$   rhoup(n1) = rhoup(n1) + rhou(i)
-!!$   rhoup(n2) = rhoup(n2) + rhou(i)
-!!$   rhoup(n3) = rhoup(n3) + rhou(i)
-!!$   
-!!$   rhovp(n1) = rhovp(n1) + rhov(i)
-!!$   rhovp(n2) = rhovp(n2) + rhov(i)
-!!$   rhovp(n3) = rhovp(n3) + rhov(i)
-!!$
-!!$   sump(n1) = sump(n1) + 1
-!!$   sump(n2) = sump(n2) + 1
-!!$   sump(n3) = sump(n3) + 1
-!!$END DO
-!!$rhop = rhop / dble(sump)
-!!$rhoup = rhoup / dble(sump)
-!!$rhovp = rhovp / dble(sump)
 
 OPEN(funit,file=tecout,status='unknown')
 WRITE(funit,*) 'TITLE = "CYBO output" '

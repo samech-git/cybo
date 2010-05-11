@@ -16,7 +16,7 @@ PROGRAM cybo
 USE inputs
 USE mesh
 IMPLICIT NONE
-NAMELIST /INPUT/ mesh_name,out_file,tsmax
+NAMELIST /INPUT/ mesh_name,out_file,tsmax,mach,out_freq,dt_fix
 CHARACTER(len=90) :: inputFile
 INTEGER :: funit
 
@@ -45,6 +45,7 @@ END PROGRAM
 SUBROUTINE init_field
 USE euler
 USE mesh
+USE inputs
 IMPLICIT NONE
 DOUBLE PRECISION :: u_in,v_in,P_in,rho_in
 
@@ -52,7 +53,7 @@ CALL allocate_euler
 
 rho_in = 1.4d0
 P_in = 1.0d0
-u_in = 0.8d0
+u_in = mach * sqrt( P_in*gamma/rho_in)
 v_in = 0.0d0
 
 inlet(1) = rho_in

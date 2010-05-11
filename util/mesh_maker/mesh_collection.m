@@ -85,12 +85,13 @@ switch(num)
       y = sin(theta)/2;
 
       node = [ x',y'; -5,-10; 25,-10; 25,10; -5,10];
-
+      node = [ x',y'; -5,-10; 5,-10; 5,10; -5,10];
+      
       n = size(node,1)-4;
       edge = [(1:n-1)' (2:n)'; n,1; n+1,n+2; n+2,n+3; n+3,n+4; n+4,n+1];
 
       hdata.fun = @const_h;
-      hdata.args = {-1,25,-3,3,0.1};
+      hdata.args = {-1.5,5,-4,4,0.1};
       options.dhmax = 0.2;
 
       [p,t] = mesh2d(node,edge,hdata,options);
@@ -424,7 +425,7 @@ switch(num)
 %   Example of 2-D wing.. airfoil of length 2 m +/-
 iaf.designation='4215';
 iaf.designation='0012';
-iaf.designation='0008';
+%iaf.designation='0008';
 iaf.n=64;
 iaf.HalfCosineSpacing=1;
 iaf.wantFile=1;
@@ -455,9 +456,9 @@ wing(:,2) = af.z(off+1:end-off);
       hdata.edgeh(:,1) = (1:size(cwing,1))';
       hdata.edgeh(:,2) = 0.1;
         
-      options.dhmax = 0.03;
+      options.dhmax = 0.1;
       hdata.fun = @const_h;
-      hdata.args = {-.2,3,-.25,.3,0.1};
+      hdata.args = {-.2,1.2,-.5,1.3,0.01};
 
       [p,t] = mesh2d(node,edge,hdata,options);
 

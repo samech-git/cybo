@@ -28,6 +28,9 @@ CHARACTER(LEN=90) :: mesh_name       ! Name of the mesh file
 CHARACTER(LEN=90) :: out_file        ! Name of the .tec file to write
 INTEGER :: tsmax = 100               ! Max number of time steps to take
 DOUBLE PRECISION :: gamma = 1.4d0    ! Ratio of specific heat for gas
+DOUBLE PRECISION :: mach = 1.0d0     ! Free-stream Mach number
+INTEGER :: out_freq = 100            ! Output file frequency
+DOUBLE PRECISION :: dt_fix = .01d0   ! Fixed dt step size
 END MODULE
 
 MODULE euler
@@ -40,7 +43,7 @@ DOUBLE PRECISION, DIMENSION(:), POINTER :: rhoE
 DOUBLE PRECISION, DIMENSION(:), POINTER :: p
 DOUBLE PRECISION :: gm1
 DOUBLE PRECISION, DIMENSION(4) :: inlet
-INTEGER :: count
+INTEGER :: count = -1
 END MODULE
 
 MODULE rk4

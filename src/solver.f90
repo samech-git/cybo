@@ -28,8 +28,7 @@ DO k=1,tsmax
    CALL get_dt(dt)
    CALL rk4step(dt)
    WRITE(*,*) 'Step number:',k
-   IF (MOD(k,100)==0) THEN
-      WRITE(*,*) 'Writing tec file',count
+   IF (MOD(k,out_freq)==0) THEN
       CALL write_tec
    END IF
 END DO
@@ -42,11 +41,12 @@ END SUBROUTINE
 SUBROUTINE get_dt(dt)
 USE euler
 USE mesh
+USE inputs, ONLY: dt_fix
 IMPLICIT NONE
 DOUBLE PRECISION :: dt
 
 ! Some routine that set the dt_max for the grid
-dt = .001d0 !!!!!
+dt = dt_fix !!!!!
 !!!!!!!!!!!
 !!!!!!!!!!!
 
