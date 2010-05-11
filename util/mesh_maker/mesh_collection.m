@@ -455,7 +455,7 @@ wing(:,2) = af.z(off+1:end-off);
       hdata.edgeh(:,1) = (1:size(cwing,1))';
       hdata.edgeh(:,2) = 0.1;
         
-      options.dhmax = 0.1;
+      options.dhmax = 0.03;
       hdata.fun = @const_h;
       hdata.args = {-.2,3,-.25,.3,0.1};
 
@@ -471,7 +471,7 @@ wing(:,2) = af.z(off+1:end-off);
 
       node  = [0,0; 1,0; 1.2,1.2; 0,1];
 
-      hdata.hmax = 0.005;
+      hdata.hmax = 0.01;
 
       
       

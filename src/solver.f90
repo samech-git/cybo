@@ -28,7 +28,7 @@ DO k=1,tsmax
    CALL get_dt(dt)
    CALL rk4step(dt)
    WRITE(*,*) 'Step number:',k
-   IF (MOD(k,10)==0) THEN
+   IF (MOD(k,100)==0) THEN
       WRITE(*,*) 'Writing tec file',count
       CALL write_tec
    END IF
@@ -46,7 +46,7 @@ IMPLICIT NONE
 DOUBLE PRECISION :: dt
 
 ! Some routine that set the dt_max for the grid
-dt = .0005d0 !!!!!
+dt = .001d0 !!!!!
 !!!!!!!!!!!
 !!!!!!!!!!!
 
@@ -68,26 +68,26 @@ tmp1 = 0.0d0
 tmp2 = 0.0d0
 phi = 0.0d0
 
-! 5 Stage RK4 step
-DO i=1,5
-   flux = 0.0d0
-   CALL get_flux(flux)
-    
-   tmp1 =  Ark(i)*phi
-   PHI = -dt*flux + tmp1
-   
-   tmp2 =  Brk(i)*phi
-   w(1:4,:) =  w(1:4,:) + tmp2 
-   CALL set_bc_points
-   CALL get_pressure
-END DO
-
+!!$! 5 Stage RK4 step
+!!$DO i=1,5
+!!$   flux = 0.0d0
+!!$   CALL get_flux(flux)
+!!$    
+!!$   tmp1 =  Ark(i)*phi
+!!$   PHI = -dt*flux + tmp1
+!!$   
+!!$   tmp2 =  Brk(i)*phi
+!!$   w(1:4,:) =  w(1:4,:) + tmp2 
+!!$   CALL set_bc_points
+!!$   CALL get_pressure
+!!$END DO
+!!$
 ! Forward Euler Time stepping
-!flux = 0.0d0
-!CALL get_flux(flux)
-!w(1:4,:) = w(1:4,:) - dt*flux
-!CALL set_bc_points
-!CALL get_pressure
+flux = 0.0d0
+CALL get_flux(flux)
+w(1:4,:) = w(1:4,:) - dt*flux
+CALL set_bc_points
+CALL get_pressure
 
 END SUBROUTINE
 
@@ -135,8 +135,8 @@ DO i=1,size(inter)
    t2 = edg(3,inter(i)) ! Node 1 of tri 2
    n2 = edg(4,inter(i)) ! Node 2 of tri 2/ node 2 of edge
    
-   dx = x(n2) - x(n1)   ! Get dx for edge
-   dy = y(n2) - y(n1)   ! Get dy for edge
+   dx = x(n1) - x(n2)   ! Get dx for edge
+   dy = y(n1) - y(n2)   ! Get dy for edge
    
    qs1 = (rhou(n1)*dy - rhov(n1)*dx)/rho(n1)  ! Reused in flux
    qs2 = (rhou(n2)*dy - rhov(n2)*dx)/rho(n2)  ! Reused in flux
@@ -163,7 +163,15 @@ DO i=1,size(inter)
    ! Add diffusive fluxes for each N point
    flux(:,n1) = flux(:,n1) - dfs / area(n1)
    flux(:,n2) = flux(:,n2) + dfs / area(n2)
-   
+
+!!$   if(t1==3) then
+!!$      print*,-fs(3),'int'
+!!$   end if
+!!$
+!!$   if(t2==3) then
+!!$      print*,fs(3),'int'
+!!$   end if
+!!$   
 
 END DO
 !!$
@@ -172,7 +180,9 @@ DO i=1,size(bound)
    
    e = bound(i)  ! Get the boundary edge index
    t1 = edg(1,e) ! Node 1 of tri 1
+   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
    t2 = edg(3,e) ! Node 1 of tri 2
+   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
    bc = edg(5,e) ! BC flag to set the flux here
 
    CALL bound_edge(e,bc,fs) 
@@ -185,15 +195,27 @@ DO i=1,size(bound)
    ELSE ! Wall
       IF(t1 .NE. 0) THEN
          flux(:,t1) = flux(:,t1) - fs/area(t1)   ! Contribution to interior node
-         flux(:,n1) = flux(:,n1) + fs/area(n1)   ! Contribution to edge node 1
-         flux(:,n2) = flux(:,n2) + fs/area(n2)   ! ...edge node 2
-      END IF
-      IF(t2 .NE. 0) THEN
-         flux(:,t2) = flux(:,t2) + fs/area(t2)   ! Contribution to interior node
          flux(:,n1) = flux(:,n1) - fs/area(n1)   ! Contribution to edge node 1
          flux(:,n2) = flux(:,n2) - fs/area(n2)   ! ...edge node 2
       END IF
+      IF(t2 .NE. 0) THEN
+         flux(:,t2) = flux(:,t2) + fs/area(t2)   ! Contribution to interior node
+         flux(:,n1) = flux(:,n1) + fs/area(n1)   ! Contribution to edge node 1
+         flux(:,n2) = flux(:,n2) + fs/area(n2)   ! ...edge node 2
+      END IF
    END IF
+
+!!$   if (t1 .ne. 0) e = -1
+!!$   if (t2 .ne. 0) e = 1
+!!$
+!!$   if(n1==3) then
+!!$      print*,dble(e)*fs(3),'bnd'
+!!$   end if
+!!$   
+!!$   if(n2==3) then
+!!$      print*,dble(e)*fs(3),'bnd'
+!!$   end if
+!!$   
     
 END DO
 
@@ -203,7 +225,7 @@ END SUBROUTINE
 SUBROUTINE bound_edge(e,bc,fs)
 USE inputs
 USE mesh, ONLY: x,y,edg,area
-USE euler, ONLY: inlet,gm1
+USE euler
 IMPLICIT NONE
 DOUBLE PRECISION, DIMENSION(4), INTENT(OUT) :: fs
 INTEGER,INTENT(IN) :: e,bc
@@ -216,13 +238,18 @@ IF (bc == 1 .or. bc == 2) THEN  ! Free stream or Slip wall
    t2 = edg(3,e)
    n2 = edg(4,e)
 
-   dx = x(n2) - x(n1)   ! Get dx for edge
-   dy = y(n2) - y(n1)   ! Get dy for edge
+   dx = x(n1) - x(n2)   ! Get dx for edge
+   dy = y(n1) - y(n2)   ! Get dy for edge
    
    !PRINT*,real(dx),real(dy)
    
    qs1 = (rhou(n1)*dy - rhov(n1)*dx)/rho(n1)  ! Reused in flux
    qs2 = (rhou(n2)*dy - rhov(n2)*dx)/rho(n2)  ! Reused in flux
+
+   if (bc==2) then
+      qs1 = 0.0
+      qs2 = 0.0
+   end if
 
    fs(1) = .5d0*(qs1*rho(n1)  + qs2*rho(n2))
    fs(2) = .5d0*(qs1*rhou(n1) + qs2*rhou(n2)) + .5d0*(p(n1) + p(n2))*dy
