@@ -14,7 +14,7 @@
 &INPUT 
 mach = 0.8d0			       ! Free-stream Mach number
 mesh_name = '../meshes/bump.msh'       ! Mesh File
-out_file = 'naca'		       ! Base name for output file (out_file_####.tec)
+out_file = 'bump'		       ! Base name for output file (out_file_####.tec)
 tsmax = 10000			       ! Maximum time steps to take
 out_freq = 100			       ! Output file Frequency
 dt_fix = .001d0

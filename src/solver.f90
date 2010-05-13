@@ -104,14 +104,14 @@ END SUBROUTINE
 SUBROUTINE get_flux(flux)
 USE euler
 USE mesh
-USE inputs, ONLY: gamma
+USE inputs, ONLY: gamma,mach
 IMPLICIT NONE
 DOUBLE PRECISION, DIMENSION(4,numpts), INTENT(INOUT) :: flux
 DOUBLE PRECISION, DIMENSION(numpts) :: div
-DOUBLE PRECISION, DIMENSION(4) :: fs,dfs
+DOUBLE PRECISION, DIMENSION(4) :: fs,dfs,norm
 INTEGER :: i,n1,n2,t1,t2
 INTEGER :: bc,e
-DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len
+DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len,u1,u2,v1,v2
 !! Routine to get the flux (residual) for each cell volume
 
 !!         T1        Diagram of how the edge flux is used
@@ -130,7 +130,7 @@ DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len
 ! Loop over the interior edges to get the flux balance of
 ! corresponding nodes
 div = 0.0
-CALL get_div(div)
+!CALL get_div(div)
 DO i=1,size(inter)
    t1 = edg(1,inter(i)) ! Node 1 of tri 1
    n1 = edg(2,inter(i)) ! Node 2 of tri 1/ node 1 of edge
@@ -154,9 +154,19 @@ DO i=1,size(inter)
    dx = x(t2) - x(t1)   ! Get dx for edge
    dy = y(t2) - y(t1)   ! Get dy for edge
    len = sqrt(dx**2 + dy**2)
-   !alpha = ( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len
-   alpha = 50.0* abs( div(n1) + div(n2))/2.0d0 * len**2
-   dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2))
+   u1 = rhou(n1)/rho(n1)
+   v1 = rhov(n1)/rho(n1)
+   u2 = rhou(n2)/rho(n2)
+   v2 = rhov(n2)/rho(n2)
+   norm(1) = inlet(1)
+   norm(2) = norm(1)*mach*sqrt(gamma*inlet(4)/inlet(1))
+   norm(3) = norm(2)
+   norm(4) =  inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1)
+   alpha = 0.5*( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
+   !alpha = 1.0* abs( (u1-u2)*dy - (v1-v2)*dx )  !/ (c1 + c2)
+   !alpha = 100.0* abs( div(n1) + div(n2))/2.0d0 * len**2
+   dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm  )
+   !dfs(4) = dfs(4)*inlet(4)! / ( inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1) )
    
    ! Add edge fluxes up for each T point
    flux(:,t1) = flux(:,t1) - fs / area(t1) 
@@ -183,6 +193,22 @@ DO i=1,size(bound)
    
    ! Add edge fluxes up for each triangle
  
+   ! Add scalar diffusion
+   c1 = sqrt( p(n1)*gamma/rho(n1))
+   c2 = sqrt( p(n2)*gamma/rho(n2))
+   u1 = rhou(n1)/rho(n1)
+   v1 = rhov(n1)/rho(n1)
+   u2 = rhou(n2)/rho(n2)
+   v2 = rhov(n2)/rho(n2)
+   dx = x(n2) - x(n1)   ! Get dx for edge
+   dy = y(n2) - y(n1)   ! Get dy for edge
+   len = sqrt(dx**2 + dy**2)
+   alpha = .5*( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
+   !alpha = 1.0* abs( (u1-u2)*dy - (v1-v2)*dx ) !/ (c1 + c2)
+   !alpha = 100.0* abs( div(n1) + div(n2))/2.0d0 * len**2
+   dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm )
+   !dfs(4) = dfs(4)*inlet(4)! / ( inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1) )
+
    IF(bc == 1 .or. bc == 3) THEN ! Free stream or outflow
       IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs/area(t1)
       IF(t2 .NE. 0) flux(:,t2) = flux(:,t2) + fs/area(t2)
@@ -191,11 +217,17 @@ DO i=1,size(bound)
          flux(:,t1) = flux(:,t1) - fs/area(t1)   ! Contribution to interior node
          flux(:,n1) = flux(:,n1) - fs/area(n1)   ! Contribution to edge node 1
          flux(:,n2) = flux(:,n2) - fs/area(n2)   ! ...edge node 2
+
+         flux(:,n1) = flux(:,n1) - dfs/area(n1)   ! Contribution to edge node 1
+         flux(:,n2) = flux(:,n2) - dfs/area(n2)   ! ...edge node 2
       END IF
       IF(t2 .NE. 0) THEN
          flux(:,t2) = flux(:,t2) + fs/area(t2)   ! Contribution to interior node
          flux(:,n1) = flux(:,n1) + fs/area(n1)   ! Contribution to edge node 1
          flux(:,n2) = flux(:,n2) + fs/area(n2)   ! ...edge node 2
+
+         flux(:,n1) = flux(:,n1) + dfs/area(n1)   ! Contribution to edge node 1
+         flux(:,n2) = flux(:,n2) + dfs/area(n2)   ! ...edge node 2
       END IF
    END IF
    
@@ -213,7 +245,7 @@ IMPLICIT NONE
 DOUBLE PRECISION, DIMENSION(4), INTENT(OUT) :: fs
 INTEGER,INTENT(IN) :: e,bc
 INTEGER :: n1,n2,t1,t2,i
-DOUBLE PRECISION :: rhoT,rhouT,rhovT,pT,rhoET,qs1,qs2,dx,dy
+DOUBLE PRECISION :: rhoT,rhouT,rhovT,pT,rhoET,qs1,qs2,dx,dy,ww
 
 IF (bc == 1 .or. bc == 2) THEN  ! Free stream or Slip wall
    t1 = edg(1,e)
@@ -293,11 +325,11 @@ USE euler
 USE mesh
 IMPLICIT NONE
 DOUBLE PRECISION, DIMENSION(numpts), INTENT(INOUT) :: div
-DOUBLE PRECISION, DIMENSION(numpts) :: divT
+DOUBLE PRECISION, DIMENSION(numpts) :: divT,divS
 DOUBLE PRECISION :: ds
-INTEGER :: i,n1,n2,t1,t2
+INTEGER :: i,n1,n2,t1,t2,n3,A,ux,uy,j
 INTEGER :: bc,e
-DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len
+DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len,dt,ww
 
 
 DO i=1,size(inter)
@@ -334,7 +366,7 @@ DO i=1,size(bound)
    
    qs1 = (rhou(n1)*dy - rhov(n1)*dx)/rho(n1)  ! Reused in flux
    qs2 = (rhou(n2)*dy - rhov(n2)*dx)/rho(n2)  ! Reused in flux
-   
+      
    ds = .5d0*(qs1*rho(n1)  + qs2*rho(n2))
    
    ! Add edge dives up for each triangle
@@ -357,20 +389,33 @@ DO i=1,size(bound)
 
 END DO
 
-!!$!! Smooth div field
-!!$divT = div
-!!$div = 0.0d0
-!!$DO i=1,size(inter)
-!!$   e = inter(i)  ! Get the boundary edge index
-!!$   t1 = edg(1,e) ! Node 1 of tri 1
-!!$   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
-!!$   t2 = edg(3,e) ! Node 1 of tri 2
-!!$   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
-!!$
-!!$   div(t1) = div(t1) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t1)
-!!$   div(t2) = div(t2) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t2)
-!!$
-!!$END DO
+!! Smooth div field
+divT = div
+div = 0.0d0
+divS = 0.0d0
+ww = .9
+DO i=1,size(inter)
+   e = inter(i)  ! Get the boundary edge index
+   t1 = edg(1,e) ! Node 1 of tri 1
+   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
+   t2 = edg(3,e) ! Node 1 of tri 2
+   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
+
+   !div(t1) = div(t1) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t1)
+   !div(t2) = div(t2) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t2)
+
+   divS(n1) = divS(n1) + 1.0d0
+   divS(n2) = divS(n2) + 1.0d0
+
+   div(n1) = div(n1) + ( (1.0-ww)*divT(n1) + ww*divT(n2) )
+   div(n2) = div(n2) + ( ww*divT(n1) + (1.0-ww)*divT(n2) )
+   
+
+END DO
+
+div = div / divS
+
+
 
 
 
