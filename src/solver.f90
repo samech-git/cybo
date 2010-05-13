@@ -106,7 +106,8 @@ USE euler
 USE mesh
 USE inputs, ONLY: gamma
 IMPLICIT NONE
-DOUBLE PRECISION, DIMENSION(4,numtri), INTENT(INOUT) :: flux
+DOUBLE PRECISION, DIMENSION(4,numpts), INTENT(INOUT) :: flux
+DOUBLE PRECISION, DIMENSION(numpts) :: div
 DOUBLE PRECISION, DIMENSION(4) :: fs,dfs
 INTEGER :: i,n1,n2,t1,t2
 INTEGER :: bc,e
@@ -128,7 +129,8 @@ DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len
 
 ! Loop over the interior edges to get the flux balance of
 ! corresponding nodes
-
+div = 0.0
+CALL get_div(div)
 DO i=1,size(inter)
    t1 = edg(1,inter(i)) ! Node 1 of tri 1
    n1 = edg(2,inter(i)) ! Node 2 of tri 1/ node 1 of edge
@@ -152,8 +154,8 @@ DO i=1,size(inter)
    dx = x(t2) - x(t1)   ! Get dx for edge
    dy = y(t2) - y(t1)   ! Get dy for edge
    len = sqrt(dx**2 + dy**2)
-   alpha = ( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len
-   !alpha = 0.0d0
+   !alpha = ( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len
+   alpha = 50.0* abs( div(n1) + div(n2))/2.0d0 * len**2
    dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2))
    
    ! Add edge fluxes up for each T point
@@ -163,15 +165,7 @@ DO i=1,size(inter)
    ! Add diffusive fluxes for each N point
    flux(:,n1) = flux(:,n1) - dfs / area(n1)
    flux(:,n2) = flux(:,n2) + dfs / area(n2)
-
-!!$   if(t1==3) then
-!!$      print*,-fs(3),'int'
-!!$   end if
-!!$
-!!$   if(t2==3) then
-!!$      print*,fs(3),'int'
-!!$   end if
-!!$   
+   
 
 END DO
 !!$
@@ -204,18 +198,7 @@ DO i=1,size(bound)
          flux(:,n2) = flux(:,n2) + fs/area(n2)   ! ...edge node 2
       END IF
    END IF
-
-!!$   if (t1 .ne. 0) e = -1
-!!$   if (t2 .ne. 0) e = 1
-!!$
-!!$   if(n1==3) then
-!!$      print*,dble(e)*fs(3),'bnd'
-!!$   end if
-!!$   
-!!$   if(n2==3) then
-!!$      print*,dble(e)*fs(3),'bnd'
-!!$   end if
-!!$   
+   
     
 END DO
 
@@ -303,3 +286,92 @@ END DO
 
 
 END SUBROUTINE
+
+
+SUBROUTINE get_div(div)
+USE euler
+USE mesh
+IMPLICIT NONE
+DOUBLE PRECISION, DIMENSION(numpts), INTENT(INOUT) :: div
+DOUBLE PRECISION, DIMENSION(numpts) :: divT
+DOUBLE PRECISION :: ds
+INTEGER :: i,n1,n2,t1,t2
+INTEGER :: bc,e
+DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len
+
+
+DO i=1,size(inter)
+   t1 = edg(1,inter(i)) ! Node 1 of tri 1
+   n1 = edg(2,inter(i)) ! Node 2 of tri 1/ node 1 of edge
+   t2 = edg(3,inter(i)) ! Node 1 of tri 2
+   n2 = edg(4,inter(i)) ! Node 2 of tri 2/ node 2 of edge
+   
+   dx = x(n1) - x(n2)   ! Get dx for edge
+   dy = y(n1) - y(n2)   ! Get dy for edge
+   
+   qs1 = (rhou(n1)*dy - rhov(n1)*dx)/rho(n1)  ! Reused in flux
+   qs2 = (rhou(n2)*dy - rhov(n2)*dx)/rho(n2)  ! Reused in flux
+
+   ds = .5d0*(qs1*rho(n1)  + qs2*rho(n2))
+   
+   ! Add edge fluxes up for each T point
+   div(t1) = div(t1) - ds / area(t1) 
+   div(t2) = div(t2) + ds / area(t2)   
+
+END DO
+!!$
+! Some loop over the boundary edges
+DO i=1,size(bound)
+   
+   e = bound(i)  ! Get the boundary edge index
+   t1 = edg(1,e) ! Node 1 of tri 1
+   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
+   t2 = edg(3,e) ! Node 1 of tri 2
+   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
+
+   dx = x(n1) - x(n2)   ! Get dx for edge
+   dy = y(n1) - y(n2)   ! Get dy for edge
+   
+   qs1 = (rhou(n1)*dy - rhov(n1)*dx)/rho(n1)  ! Reused in flux
+   qs2 = (rhou(n2)*dy - rhov(n2)*dx)/rho(n2)  ! Reused in flux
+   
+   ds = .5d0*(qs1*rho(n1)  + qs2*rho(n2))
+   
+   ! Add edge dives up for each triangle
+ 
+   !IF(bc == 1 .or. bc == 3) THEN ! Free stream or outflow
+   !   IF(t1 .NE. 0) div(t1) = div(t1) - ds/area(t1)
+   !   IF(t2 .NE. 0) div(t2) = div(t2) + ds/area(t2)
+   !ELSE ! Wall
+      IF(t1 .NE. 0) THEN
+         div(t1) = div(t1) - ds/area(t1)   ! Contribution to interior node
+         div(n1) = div(n1) - ds/area(n1)   ! Contribution to edge node 1
+         div(n2) = div(n2) - ds/area(n2)   ! ...edge node 2
+      END IF
+      IF(t2 .NE. 0) THEN
+         div(t2) = div(t2) + ds/area(t2)   ! Contribution to interior node
+         div(n1) = div(n1) + ds/area(n1)   ! Contribution to edge node 1
+         div(n2) = div(n2) + ds/area(n2)   ! ...edge node 2
+      END IF
+   !END IF
+
+END DO
+
+!!$!! Smooth div field
+!!$divT = div
+!!$div = 0.0d0
+!!$DO i=1,size(inter)
+!!$   e = inter(i)  ! Get the boundary edge index
+!!$   t1 = edg(1,e) ! Node 1 of tri 1
+!!$   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
+!!$   t2 = edg(3,e) ! Node 1 of tri 2
+!!$   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
+!!$
+!!$   div(t1) = div(t1) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t1)
+!!$   div(t2) = div(t2) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t2)
+!!$
+!!$END DO
+
+
+
+END SUBROUTINE get_div

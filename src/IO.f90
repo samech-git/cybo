@@ -19,13 +19,14 @@ USE euler
 USE mesh
 USE inputs
 IMPLICIT NONE
-!DOUBLE PRECISION, DIMENSION(numpts) :: rhop,rhoup,rhovp
-INTEGER, DIMENSION(numpts) :: sump
+DOUBLE PRECISION, DIMENSION(numpts) :: div
+!INTEGER, DIMENSION(numpts) :: sump
 INTEGER :: funit,i
 INTEGER :: n1,n2,n3
 CHARACTER(LEN=90) :: tecout, file_num
 funit = 5
 
+CALL get_div(div)
 count = count + 1        ! Increment this counter to get a database of files
 WRITE(*,*) 'Writing tec file',count
 write(file_num,'(I4.4)') count
@@ -40,7 +41,7 @@ WRITE(funit,*) 'N=',numpts,',E=',numtri
 
 DO i=1,numpts
 !   WRITE(funit,*) x(i),y(i),rho(i),rhou(i)/rho(i),rhov(i)/rho(i),p(i)      ! Double precision write 
-   WRITE(funit,*) real(x(i)),real(y(i)),real(rho(i)),real(rhou(i)/rho(i)),real(rhov(i)/rho(i)),real(p(i))      ! Single precision write 
+   WRITE(funit,*) real(x(i)),real(y(i)),real(div(i)),real(rhou(i)/rho(i)),real(rhov(i)/rho(i)),real(p(i))      ! Single precision write 
 END DO
 DO i=1,numtri
    WRITE(funit,*) tri(1,i),tri(2,i),tri(3,i)
