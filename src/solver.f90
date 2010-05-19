@@ -130,7 +130,7 @@ DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len,u1,u2,v1,v2
 ! Loop over the interior edges to get the flux balance of
 ! corresponding nodes
 div = 0.0
-!CALL get_div(div)
+CALL get_div(div)
 DO i=1,size(inter)
    t1 = edg(1,inter(i)) ! Node 1 of tri 1
    n1 = edg(2,inter(i)) ! Node 2 of tri 1/ node 1 of edge
@@ -158,14 +158,15 @@ DO i=1,size(inter)
    v1 = rhov(n1)/rho(n1)
    u2 = rhou(n2)/rho(n2)
    v2 = rhov(n2)/rho(n2)
-   norm(1) = inlet(1)
-   norm(2) = norm(1)*mach*sqrt(gamma*inlet(4)/inlet(1))
-   norm(3) = norm(2)
-   norm(4) =  inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1)
-   alpha = 0.5*( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
+   !norm(1) = inlet(1)
+   !norm(2) = norm(1)*mach*sqrt(gamma*inlet(4)/inlet(1))
+   !norm(3) = norm(2)
+   !norm(4) =  inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1)
+   u1 = (div(n1) + div(n2) )/ (c1 + c2) * len
+   alpha = 20.5*( abs(qs1 + qs2)/2.0d0/len + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
    !alpha = 1.0* abs( (u1-u2)*dy - (v1-v2)*dx )  !/ (c1 + c2)
    !alpha = 100.0* abs( div(n1) + div(n2))/2.0d0 * len**2
-   dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm  )
+   dfs = - abs(u1) * alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm  )
    !dfs(4) = dfs(4)*inlet(4)! / ( inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1) )
    
    ! Add edge fluxes up for each T point
@@ -203,10 +204,11 @@ DO i=1,size(bound)
    dx = x(n2) - x(n1)   ! Get dx for edge
    dy = y(n2) - y(n1)   ! Get dy for edge
    len = sqrt(dx**2 + dy**2)
-   alpha = .5*( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
+   u1 = (div(n1) + div(n2) )/ (c1 + c2) * len
+   alpha = 20.5*( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
    !alpha = 1.0* abs( (u1-u2)*dy - (v1-v2)*dx ) !/ (c1 + c2)
    !alpha = 100.0* abs( div(n1) + div(n2))/2.0d0 * len**2
-   dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm )
+   dfs = - abs(u1)*alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm )
    !dfs(4) = dfs(4)*inlet(4)! / ( inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1) )
 
    IF(bc == 1 .or. bc == 3) THEN ! Free stream or outflow
