@@ -12,7 +12,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 &INPUT 
-mach = 0.8d0			       ! Free-stream Mach number
+mach = 0.2d0			       ! Free-stream Mach number
 mesh_name = '../meshes/bump.msh'       ! Mesh File
 out_file = 'bump'		       ! Base name for output file (out_file_####.tec)
 tsmax = 10000			       ! Maximum time steps to take
