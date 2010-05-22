@@ -481,7 +481,7 @@ wing(:,2) = af.z(off+1:end-off);
       
       
       case 15
-      x=linspace(0,1,50);
+      x=linspace(0,1,20);
       y=-0.4*x.^2+0.4*x;
       
       circ_arc=[x' y'];
@@ -489,12 +489,14 @@ wing(:,2) = af.z(off+1:end-off);
       node = [-5,0; circ_arc; 6,0; 6,10; -5,10];
 
       hdata.hmax = 0.2;
-      hdata.fun = @const_h;
-      hdata.args = {-1,2,0,4,0.025};
+      %hdata.hmax = 0.2;
+      %hdata.fun = @const_h;
+      %hdata.args = {-1,2,0,4,0.025};
+      %hdata.args = {-1,2,0,4,0.1};
 
-      options.dhmax = 0.1;
+      %options.dhmax = 0.1;
 
-      [p,t] = mesh2d(node,[],hdata,options);
+      [p,t] = mesh2d(node,[],hdata);%,options);
 
         
 end
