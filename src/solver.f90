@@ -130,7 +130,7 @@ DOUBLE PRECISION :: dx,dy,qs1,qs2,alpha,c1,c2,len,u1,u2,v1,v2
 ! Loop over the interior edges to get the flux balance of
 ! corresponding nodes
 div = 0.0
-CALL get_div(div)
+!CALL get_div(div)
 DO i=1,size(inter)
    t1 = edg(1,inter(i)) ! Node 1 of tri 1
    n1 = edg(2,inter(i)) ! Node 2 of tri 1/ node 1 of edge
@@ -162,8 +162,9 @@ DO i=1,size(inter)
    !norm(2) = norm(1)*mach*sqrt(gamma*inlet(4)/inlet(1))
    !norm(3) = norm(2)
    !norm(4) =  inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1)
-   u1 = (div(n1) + div(n2) )/ (c1 + c2) * len
-   alpha = 20.5*( abs(qs1 + qs2)/2.0d0/len + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
+   !u1 = (div(n1) + div(n2) )/ (c1 + c2) * len
+   u1 = 1.0
+   alpha = 0.5*( abs(qs1 + qs2)/2.0d0/len + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
    !alpha = 1.0* abs( (u1-u2)*dy - (v1-v2)*dx )  !/ (c1 + c2)
    !alpha = 100.0* abs( div(n1) + div(n2))/2.0d0 * len**2
    dfs = - abs(u1) * alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm  )
@@ -204,8 +205,9 @@ DO i=1,size(bound)
    dx = x(n2) - x(n1)   ! Get dx for edge
    dy = y(n2) - y(n1)   ! Get dy for edge
    len = sqrt(dx**2 + dy**2)
-   u1 = (div(n1) + div(n2) )/ (c1 + c2) * len
-   alpha = 20.5*( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
+   !u1 = (div(n1) + div(n2) )/ (c1 + c2) * len
+   u1 = 1.0d0
+   alpha = 0.5*( abs(qs1 + qs2)/2.0d0 + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
    !alpha = 1.0* abs( (u1-u2)*dy - (v1-v2)*dx ) !/ (c1 + c2)
    !alpha = 100.0* abs( div(n1) + div(n2))/2.0d0 * len**2
    dfs = - abs(u1)*alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm )
@@ -391,31 +393,31 @@ DO i=1,size(bound)
 
 END DO
 
-!! Smooth div field
-divT = div
-div = 0.0d0
-divS = 0.0d0
-ww = .9
-DO i=1,size(inter)
-   e = inter(i)  ! Get the boundary edge index
-   t1 = edg(1,e) ! Node 1 of tri 1
-   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
-   t2 = edg(3,e) ! Node 1 of tri 2
-   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
-
-   !div(t1) = div(t1) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t1)
-   !div(t2) = div(t2) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t2)
-
-   divS(n1) = divS(n1) + 1.0d0
-   divS(n2) = divS(n2) + 1.0d0
-
-   div(n1) = div(n1) + ( (1.0-ww)*divT(n1) + ww*divT(n2) )
-   div(n2) = div(n2) + ( ww*divT(n1) + (1.0-ww)*divT(n2) )
-   
-
-END DO
-
-div = div / divS
+!!$!! Smooth div field
+!!$divT = div
+!!$div = 0.0d0
+!!$divS = 0.0d0
+!!$ww = .9
+!!$DO i=1,size(inter)
+!!$   e = inter(i)  ! Get the boundary edge index
+!!$   t1 = edg(1,e) ! Node 1 of tri 1
+!!$   n1 = edg(2,e) ! Node 2 of tri 1/ node 1 of edge
+!!$   t2 = edg(3,e) ! Node 1 of tri 2
+!!$   n2 = edg(4,e) ! Node 2 of tri 2/ node 2 of edge
+!!$
+!!$   !div(t1) = div(t1) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t1)
+!!$   !div(t2) = div(t2) + ( divT(n1)*area(n1) + divT(n2)*area(n2) )/area(t2)
+!!$
+!!$   divS(n1) = divS(n1) + 1.0d0
+!!$   divS(n2) = divS(n2) + 1.0d0
+!!$
+!!$   div(n1) = div(n1) + ( (1.0-ww)*divT(n1) + ww*divT(n2) )
+!!$   div(n2) = div(n2) + ( ww*divT(n1) + (1.0-ww)*divT(n2) )
+!!$   
+!!$
+!!$END DO
+!!$
+!!$div = div / divS
 
 
 
