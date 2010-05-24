@@ -154,7 +154,7 @@ WRITE(file_num,'(I4.4)') count
 cpout = adjustr(trim(out_file)) // '_cp.dat'
 
 OPEN(funit,file=cpout,status='replace')
-WRITE(funit,*) '# x --- y --- (-cp) '
+WRITE(funit,*) '%%  x --- y --- (-cp) '
 
 cpf = 2.0d0 / (gamma * mach**2)
 pinf = inlet(4)

@@ -439,10 +439,11 @@ off = iaf.n / 8;
 wing(:,1) = af.x(off+1:end-off);
 wing(:,2) = af.z(off+1:end-off);
 
-     wing = rotate(wing,1.5);
+     wing = rotate(wing,10);
 
-     wall = [-3,-2; 3,-2; 3,2; -3,2];
+     wall = [-4,-4; 5,-4; 5,4; -4,4];
       %wall = [-3,-15;30,-15;30,20;-3,20];
+      hdata.hmax = 0.15;
 
       nwing = size(wing,1);
       nwall = size(wall,1);
@@ -458,7 +459,7 @@ wing(:,2) = af.z(off+1:end-off);
         
       options.dhmax = 0.1;
       hdata.fun = @const_h;
-      hdata.args = {-.2,1.2,-.5,1.3,0.01};
+      hdata.args = {-.5,1.5,-1.0,1.8,0.03};
 
       [p,t] = mesh2d(node,edge,hdata,options);
 
