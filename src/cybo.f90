@@ -31,11 +31,13 @@ OPEN(UNIT=funit,FILE=TRIM(inputFile),FORM='FORMATTED',STATUS='OLD')
   READ(UNIT=funit,NML=INPUT)
 CLOSE(funit)
 
+! Read in a mesh file
 CALL read_mesh
 
-u = x**2 - y**2
+! Initialize the flow field
 CALL init_field
 
+! Solve the euler equations
 CALL solver
 
 
@@ -62,7 +64,7 @@ inlet(3) = rho_in*v_in
 inlet(4) = p_in
 
 !rho = rho_in + rho_in*3*exp( -((x-.5)**2 + (y-.5)**2)/0.01 ) ! Gauss
-p = p_in + p_in*.2*(1.0 + tanh( -((x-.5)**2 + (y-.5)**2)/0.01 )) ! Gauss
+!p = p_in + p_in*.2*(1.0 + tanh( -((x-.5)**2 + (y-.5)**2)/0.01 )) ! Gauss
 rho = rho_in !p
 rhou = rho_in*u_in
 rhov = rho_in*v_in

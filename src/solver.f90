@@ -154,21 +154,9 @@ DO i=1,size(inter)
    dx = x(t2) - x(t1)   ! Get dx for edge
    dy = y(t2) - y(t1)   ! Get dy for edge
    len = sqrt(dx**2 + dy**2)
-   u1 = rhou(n1)/rho(n1)
-   v1 = rhov(n1)/rho(n1)
-   u2 = rhou(n2)/rho(n2)
-   v2 = rhov(n2)/rho(n2)
-   !norm(1) = inlet(1)
-   !norm(2) = norm(1)*mach*sqrt(gamma*inlet(4)/inlet(1))
-   !norm(3) = norm(2)
-   !norm(4) =  inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1)
-   !u1 = (div(n1) + div(n2) )/ (c1 + c2) * len
-   u1 = 1.0
-   alpha = 0.5*( abs(qs1 + qs2)/2.0d0/len + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
-   !alpha = 1.0* abs( (u1-u2)*dy - (v1-v2)*dx )  !/ (c1 + c2)
-   !alpha = 100.0* abs( div(n1) + div(n2))/2.0d0 * len**2
-   dfs = - abs(u1) * alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm  )
-   !dfs(4) = dfs(4)*inlet(4)! / ( inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1) )
+
+   alpha = ( abs(qs1 + qs2)/2.0d0/len + (c1 + c2)/2.0d0 ) * len 
+   dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2))
    
    ! Add edge fluxes up for each T point
    flux(:,t1) = flux(:,t1) - fs / area(t1) 
@@ -198,20 +186,11 @@ DO i=1,size(bound)
    ! Add scalar diffusion
    c1 = sqrt( p(n1)*gamma/rho(n1))
    c2 = sqrt( p(n2)*gamma/rho(n2))
-   u1 = rhou(n1)/rho(n1)
-   v1 = rhov(n1)/rho(n1)
-   u2 = rhou(n2)/rho(n2)
-   v2 = rhov(n2)/rho(n2)
    dx = x(n2) - x(n1)   ! Get dx for edge
    dy = y(n2) - y(n1)   ! Get dy for edge
    len = sqrt(dx**2 + dy**2)
-   !u1 = (div(n1) + div(n2) )/ (c1 + c2) * len
-   u1 = 1.0d0
-   alpha = 0.5*( abs(qs1 + qs2)/2.0d0/len + (c1 + c2)/2.0d0 ) * len !* abs( (u1-u2) + (v1-v2)) / (c1 + c2)
-   !alpha = 1.0* abs( (u1-u2)*dy - (v1-v2)*dx ) !/ (c1 + c2)
-   !alpha = 100.0* abs( div(n1) + div(n2))/2.0d0 * len**2
-   dfs = - abs(u1)*alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) !* abs( (w(1:4,n1)-w(1:4,n2))) / ( norm )
-   !dfs(4) = dfs(4)*inlet(4)! / ( inlet(4) / gm1  + (inlet(3)**2.0 + inlet(2)**2.0) / 2.0d0/inlet(1) )
+   alpha = ( abs(qs1 + qs2)/2.0d0/len + (c1 + c2)/2.0d0 ) * len 
+   dfs = - alpha/2.0d0*(w(1:4,n1)-w(1:4,n2)) 
 
    IF(bc == 1 .or. bc == 3) THEN ! Free stream or outflow
       IF(t1 .NE. 0) flux(:,t1) = flux(:,t1) - fs/area(t1)
@@ -222,16 +201,16 @@ DO i=1,size(bound)
          flux(:,n1) = flux(:,n1) - fs/area(n1)   ! Contribution to edge node 1
          flux(:,n2) = flux(:,n2) - fs/area(n2)   ! ...edge node 2
 
-         flux(:,n1) = flux(:,n1) - dfs/area(n1)   ! Contribution to edge node 1
-         flux(:,n2) = flux(:,n2) - dfs/area(n2)   ! ...edge node 2
+         !flux(:,n1) = flux(:,n1) - dfs/area(n1)   ! Contribution to edge node 1
+         !flux(:,n2) = flux(:,n2) - dfs/area(n2)   ! ...edge node 2
       END IF
       IF(t2 .NE. 0) THEN
          flux(:,t2) = flux(:,t2) + fs/area(t2)   ! Contribution to interior node
          flux(:,n1) = flux(:,n1) + fs/area(n1)   ! Contribution to edge node 1
          flux(:,n2) = flux(:,n2) + fs/area(n2)   ! ...edge node 2
 
-         flux(:,n1) = flux(:,n1) + dfs/area(n1)   ! Contribution to edge node 1
-         flux(:,n2) = flux(:,n2) + dfs/area(n2)   ! ...edge node 2
+         !flux(:,n1) = flux(:,n1) + dfs/area(n1)   ! Contribution to edge node 1
+         !flux(:,n2) = flux(:,n2) + dfs/area(n2)   ! ...edge node 2
       END IF
    END IF
    
