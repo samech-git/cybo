@@ -31,7 +31,7 @@ OPEN(UNIT=funit,FILE=TRIM(inputFile),FORM='FORMATTED',STATUS='OLD')
   READ(UNIT=funit,NML=INPUT)
 CLOSE(funit)
 
-! Read in a mesh file
+! Read in a mesh file for calculation
 CALL read_mesh
 
 ! Initialize the flow field
